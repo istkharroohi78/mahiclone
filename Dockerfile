@@ -1,4 +1,4 @@
-FROM golang:1.22-bullseye
+FROM golang:latest
 
 # Ffmpeg install karna music streaming ke liye
 RUN apt-get update && \
@@ -10,7 +10,7 @@ WORKDIR /app/
 # Saara code container me copy karna
 COPY . /app/
 
-# 🚀 FIX: go mod tidy saare missing dependencies aur go.sum errors ko auto-fix kar dega
+# Naya Go version ab saare packages bina error ke download kar lega
 RUN go mod tidy
 RUN go build -o shivmusic_bot .
 
