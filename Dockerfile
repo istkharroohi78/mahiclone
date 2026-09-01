@@ -10,8 +10,8 @@ WORKDIR /app/
 # Saara code container me copy karna
 COPY . /app/
 
-# Go ke packages download aur build karna
-RUN go mod download
+# 🚀 FIX: go mod tidy saare missing dependencies aur go.sum errors ko auto-fix kar dega
+RUN go mod tidy
 RUN go build -o shivmusic_bot .
 
 # Bot ko start karne ki command
