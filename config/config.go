@@ -6,7 +6,47 @@ import (
 	"strings"
 )
 
-// Global variables accessible as config.SupportChat, config.OwnerUsername, etc.
+// Struct for files that use: cfg := config.LoadConfig()
+type Config struct {
+	APIID                int
+	APIHash              string
+	BotToken             string
+	BotID                string
+	OwnerUsername        string
+	BotUsername          string
+	BotName              string
+	AssUsername          string
+	BotLink              string
+	MongoDBURI           string
+	JioSaavnAPI          string
+	APIURL               string
+	APIKey               string
+	YTProxyURL           string
+	YTAPIKey             string
+	WorkerFallbackAPIURL string
+	WorkerFallbackAPIKey string
+	InflexAPIURL         string
+	InflexAPIKey         string
+	DurationLimit        int
+	LoggerID             int64
+	Logger2ID            int64
+	CloneLogger          int64
+	CloneLogger2         int64
+	ErrorLoggerID        int64
+	OwnerID              int64
+	Sudoers              []int64
+	SupportChannel       string
+	SupportChat          string
+	Github               string
+	SpotifyClientID      string
+	SpotifyClientSecret  string
+	StringSessions       []string
+	StartImgURL          []string
+	CMBot                []string
+	EffectID             []int64
+}
+
+// Global variables for files that use: config.SupportChat
 var (
 	APIID                int
 	APIHash              string
@@ -46,7 +86,6 @@ var (
 	EffectID             []int64
 )
 
-// Helper functions for parsing environments
 func getEnv(key, fallback string) string {
 	if value, exists := os.LookupEnv(key); exists {
 		return value
@@ -87,13 +126,12 @@ func timeToSeconds(timeStr string) int {
 	return seconds
 }
 
-// init() automatically loads values when the bot starts
 func init() {
 	LoadConfig()
 }
 
-// LoadConfig assigns all environment values to the global variables
-func LoadConfig() {
+// LoadConfig globals update karega aur end mein struct return karega
+func LoadConfig() *Config {
 	durationLimitMin := getEnv("DURATION_LIMIT", "17000")
 
 	APIID = getEnvAsInt("API_ID", 0)
@@ -107,7 +145,6 @@ func LoadConfig() {
 	BotLink = getEnv("BOT_LINK", "https://t.me/royal_musics_bot")
 	MongoDBURI = getEnv("MONGO_DB_URI", "")
 	
-	// Streaming Fallback Platform
 	JioSaavnAPI = getEnv("JIOSAAVN_API", "https://saavn.me/search/songs?query=")
 
 	APIURL = getEnv("API_URL", "https://api.shrutibots.site")
@@ -149,15 +186,51 @@ func LoadConfig() {
 	CMBot = []string{
 		"💞", "🥂", "🔍", "🧪", "⚡️", "🔥", "🦋", "🎩", "🌈", "🍷",
 		"🥃", "🥤", "🕊️", "💌", "🧨", "✨", "💥", "💯", "🌟", "⚡️",
-		"❤️", "😍", "🥰", "😘", "😂", "🤣", "😱", "😡", "👏", "🙏",
-		"🎉", "🎊", "🎶", "🎵", "🎧", "🎸", "🎹", "🥁", "🎺", "🎷",
-		"🔥", "⚡️", "💫", "🌙", "☀️", "🌈", "❄️", "🌸", "🌺", "🌹",
-		"🦋", "🕊️", "🐍", "🐯", "🦁", "🐺", "🐉", "🦅", "🦄", "🐎",
 	}
 	EffectID = []int64{
 		5046509860389126442,
 		5107584321108051014,
 		5104841245755180586,
 		5159385139981059251,
+	}
+
+	// Struct return taaki 'logger.go' error na de
+	return &Config{
+		APIID:                APIID,
+		APIHash:              APIHash,
+		BotToken:             BotToken,
+		BotID:                BotID,
+		OwnerUsername:        OwnerUsername,
+		BotUsername:          BotUsername,
+		BotName:              BotName,
+		AssUsername:          AssUsername,
+		BotLink:              BotLink,
+		MongoDBURI:           MongoDBURI,
+		JioSaavnAPI:          JioSaavnAPI,
+		APIURL:               APIURL,
+		APIKey:               APIKey,
+		YTProxyURL:           YTProxyURL,
+		YTAPIKey:             YTAPIKey,
+		WorkerFallbackAPIURL: WorkerFallbackAPIURL,
+		WorkerFallbackAPIKey: WorkerFallbackAPIKey,
+		InflexAPIURL:         InflexAPIURL,
+		InflexAPIKey:         InflexAPIKey,
+		DurationLimit:        DurationLimit,
+		LoggerID:             LoggerID,
+		Logger2ID:            Logger2ID,
+		CloneLogger:          CloneLogger,
+		CloneLogger2:         CloneLogger2,
+		ErrorLoggerID:        ErrorLoggerID,
+		OwnerID:              OwnerID,
+		Sudoers:              Sudoers,
+		SupportChannel:       SupportChannel,
+		SupportChat:          SupportChat,
+		Github:               Github,
+		SpotifyClientID:      SpotifyClientID,
+		SpotifyClientSecret:  SpotifyClientSecret,
+		StringSessions:       StringSessions,
+		StartImgURL:          StartImgURL,
+		CMBot:                CMBot,
+		EffectID:             EffectID,
 	}
 }
