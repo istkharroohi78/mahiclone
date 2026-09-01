@@ -173,7 +173,7 @@ func RegisterCBroadcastHandlers(b *tb.Bot) {
 					continue
 				}
 
-				// Convert botID to string for database functions
+				// Convert botID to string for database functions that require a string ID
 				botIDString := fmt.Sprintf("%d", botID)
 
 				// Collect Targets using Map as a Set
@@ -194,7 +194,8 @@ func RegisterCBroadcastHandlers(b *tb.Bot) {
 					}
 				}
 				if sendGroups {
-					groups := database.GetServedChatsClone(botIDString)
+					// GetServedChatsClone expects int64 (botID), not string
+					groups := database.GetServedChatsClone(botID)
 					totalTargetGroups += len(groups)
 					for _, g := range groups {
 						targetIDs[g] = true
