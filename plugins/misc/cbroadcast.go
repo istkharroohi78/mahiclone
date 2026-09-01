@@ -173,25 +173,28 @@ func RegisterCBroadcastHandlers(b *tb.Bot) {
 					continue
 				}
 
+				// Convert botID to string for database functions
+				botIDString := fmt.Sprintf("%d", botID)
+
 				// Collect Targets using Map as a Set
 				targetIDs := make(map[int64]bool)
 
 				if sendOwners {
-					ownerID := database.GetCloneBotOwner(botID)
+					ownerID := database.GetCloneBotOwner(botIDString)
 					if ownerID != 0 {
 						targetIDs[ownerID] = true
 						totalTargetUsers++
 					}
 				}
 				if sendUsers {
-					users := database.GetServedUsersClone(botID)
+					users := database.GetServedUsersClone(botIDString)
 					totalTargetUsers += len(users)
 					for _, u := range users {
 						targetIDs[u] = true
 					}
 				}
 				if sendGroups {
-					groups := database.GetServedChatsClone(botID)
+					groups := database.GetServedChatsClone(botIDString)
 					totalTargetGroups += len(groups)
 					for _, g := range groups {
 						targetIDs[g] = true
