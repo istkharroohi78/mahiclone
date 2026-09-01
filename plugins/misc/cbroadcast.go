@@ -149,7 +149,25 @@ func RegisterCBroadcastHandlers(b *tb.Bot) {
 					break
 				}
 
-				if clone.Token == "" || clone.BotID == 0 {
+				// --- MAP TYPE EXTRACTION FIX ---
+				// Safely extract string values using comma-ok idiom
+				token, _ := clone["Token"].(string)
+				username, _ := clone["Username"].(string)
+
+				// Safely extract botID since DB could return int, int32, int64, or float64
+				var botID int64
+				switch v := clone["BotID"].(type) {
+				case int64:
+					botID = v
+				case int32:
+					botID = int64(v)
+				case int:
+					botID = int64(v)
+				case float64:
+					botID = int64(v)
+				}
+
+				if token == "" || botID == 0 {
 					failedClones++
 					processedClones++
 					continue
@@ -159,21 +177,21 @@ func RegisterCBroadcastHandlers(b *tb.Bot) {
 				targetIDs := make(map[int64]bool)
 
 				if sendOwners {
-					ownerID := database.GetCloneBotOwner(clone.BotID)
+					ownerID := database.GetCloneBotOwner(botID)
 					if ownerID != 0 {
 						targetIDs[ownerID] = true
 						totalTargetUsers++
 					}
 				}
 				if sendUsers {
-					users := database.GetServedUsersClone(clone.BotID)
+					users := database.GetServedUsersClone(botID)
 					totalTargetUsers += len(users)
 					for _, u := range users {
 						targetIDs[u] = true
 					}
 				}
 				if sendGroups {
-					groups := database.GetServedChatsClone(clone.BotID)
+					groups := database.GetServedChatsClone(botID)
 					totalTargetGroups += len(groups)
 					for _, g := range groups {
 						targetIDs[g] = true
@@ -186,7 +204,7 @@ func RegisterCBroadcastHandlers(b *tb.Bot) {
 				}
 
 				// Initialize Clone Bot Instance
-				cloneBot, err := tb.NewBot(tb.Settings{Token: clone.Token})
+				cloneBot, err := tb.NewBot(tb.Settings{Token: token})
 				if err != nil {
 					failedClones++
 					processedClones++
@@ -243,7 +261,7 @@ func RegisterCBroadcastHandlers(b *tb.Bot) {
 						"📨 **Messages Sent Live:** `%d`\n"+
 						"🔄 **Currently Sending via:** `@%s`\n\n"+
 						"⚠️ **Failed Tokens:** `%d`",
-						progressBar, processedClones, totalClones, totalSent, clone.Username, failedClones)
+						progressBar, processedClones, totalClones, totalSent, username, failedClones)
 					
 					b.Edit(statusMsg, liveText)
 					lastEditTime = time.Now()
