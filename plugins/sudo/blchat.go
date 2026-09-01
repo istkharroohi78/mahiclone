@@ -8,7 +8,7 @@ import (
 	tb "gopkg.in/tucnak/telebot.v2"
 
 	// Apne project module ka naam 'ANJALI' lagayein
-	mystrings "ANJALI/strings"
+	mystrings "ANJALI/i18n"
 	"ANJALI/utils/database"
 	"ANJALI/config" 
 )
