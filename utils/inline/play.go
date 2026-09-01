@@ -24,7 +24,7 @@ func timeToSeconds(t string) int {
 // createBtn generates a Telebot inline button. 
 // It splits Pyrogram-style callbacks (e.g., "ADMIN Pause|123") into Telebot's unique ID and payload.
 func cloneButton(menu *tb.ReplyMarkup) tb.Btn {
-	return createBtn(menu, "ᴄʟᴏɴᴇ-ᴍᴇ", "", "https://t.me/clone_MUSICrobot")
+	return createBtn(menu, "ᴄʟᴏɴᴇ-ᴍᴇ", "", "https://t.me/clone_MUSICrobot", 0, "", false)
 }
 
 // TrackMarkup
@@ -34,12 +34,12 @@ func TrackMarkup(langData map[string]string, videoid string, userID int64, chann
 
 	menu.Inline(
 		menu.Row(
-			createBtn(menu, langData["P_B_1"], fmt.Sprintf("MusicStream %s|%s|a|%s|%s", videoid, uid, channel, fplay), ""),
-			createBtn(menu, langData["P_B_2"], fmt.Sprintf("MusicStream %s|%s|v|%s|%s", videoid, uid, channel, fplay), ""),
+			createBtn(menu, langData["P_B_1"], fmt.Sprintf("MusicStream %s|%s|a|%s|%s", videoid, uid, channel, fplay), "", 0, "", false),
+			createBtn(menu, langData["P_B_2"], fmt.Sprintf("MusicStream %s|%s|v|%s|%s", videoid, uid, channel, fplay), "", 0, "", false),
 		),
 		menu.Row(
 			cloneButton(menu),
-			createBtn(menu, langData["CLOSE_BUTTON"], fmt.Sprintf("forceclose %s|%s", videoid, uid), ""),
+			createBtn(menu, langData["CLOSE_BUTTON"], fmt.Sprintf("forceclose %s|%s", videoid, uid), "", 0, "", false),
 		),
 	)
 	return menu
@@ -72,19 +72,19 @@ func StreamMarkupTimer(langData map[string]string, chatID int64, played string, 
 
 	menu := &tb.ReplyMarkup{}
 	menu.Inline(
-		menu.Row(createBtn(menu, timerText, "GetTimer", "")),
+		menu.Row(createBtn(menu, timerText, "GetTimer", "", 0, "", false)),
 		menu.Row(
-			createBtn(menu, PlayEmoji, "ADMIN Resume|"+cid, ""),
-			createBtn(menu, PauseEmoji, "ADMIN Pause|"+cid, ""),
-			createBtn(menu, ReplayEmoji, "ADMIN Replay|"+cid, ""),
-			createBtn(menu, SkipEmoji, "ADMIN Skip|"+cid, ""),
-			createBtn(menu, StopEmoji, "ADMIN Stop|"+cid, ""),
+			createBtn(menu, PlayEmoji, "ADMIN Resume|"+cid, "", 0, "", false),
+			createBtn(menu, PauseEmoji, "ADMIN Pause|"+cid, "", 0, "", false),
+			createBtn(menu, ReplayEmoji, "ADMIN Replay|"+cid, "", 0, "", false),
+			createBtn(menu, SkipEmoji, "ADMIN Skip|"+cid, "", 0, "", false),
+			createBtn(menu, StopEmoji, "ADMIN Stop|"+cid, "", 0, "", false),
 		),
 		menu.Row(
-			createBtn(menu, "ᴀᴜᴛᴏ-ᴘʟᴀʏ", "ADMIN Autoplay|"+cid, ""),
+			createBtn(menu, "ᴀᴜᴛᴏ-ᴘʟᴀʏ", "ADMIN Autoplay|"+cid, "", 0, "", false),
 			cloneButton(menu),
 		),
-		menu.Row(createBtn(menu, langData["CLOSE_BUTTON"], "close", "")),
+		menu.Row(createBtn(menu, langData["CLOSE_BUTTON"], "close", "", 0, "", false)),
 	)
 	return menu
 }
@@ -96,17 +96,17 @@ func StreamMarkup(langData map[string]string, chatID int64) *tb.ReplyMarkup {
 
 	menu.Inline(
 		menu.Row(
-			createBtn(menu, PlayEmoji, "ADMIN Resume|"+cid, ""),
-			createBtn(menu, PauseEmoji, "ADMIN Pause|"+cid, ""),
-			createBtn(menu, ReplayEmoji, "ADMIN Replay|"+cid, ""),
-			createBtn(menu, SkipEmoji, "ADMIN Skip|"+cid, ""),
-			createBtn(menu, StopEmoji, "ADMIN Stop|"+cid, ""),
+			createBtn(menu, PlayEmoji, "ADMIN Resume|"+cid, "", 0, "", false),
+			createBtn(menu, PauseEmoji, "ADMIN Pause|"+cid, "", 0, "", false),
+			createBtn(menu, ReplayEmoji, "ADMIN Replay|"+cid, "", 0, "", false),
+			createBtn(menu, SkipEmoji, "ADMIN Skip|"+cid, "", 0, "", false),
+			createBtn(menu, StopEmoji, "ADMIN Stop|"+cid, "", 0, "", false),
 		),
 		menu.Row(
-			createBtn(menu, "ᴀᴜᴛᴏ-ᴘʟᴀʏ", "ADMIN Autoplay|"+cid, ""),
+			createBtn(menu, "ᴀᴜᴛᴏ-ᴘʟᴀʏ", "ADMIN Autoplay|"+cid, "", 0, "", false),
 			cloneButton(menu),
 		),
-		menu.Row(createBtn(menu, langData["CLOSE_BUTTON"], "close", "")),
+		menu.Row(createBtn(menu, langData["CLOSE_BUTTON"], "close", "", 0, "", false)),
 	)
 	return menu
 }
@@ -118,12 +118,12 @@ func PlaylistMarkup(langData map[string]string, videoid string, userID int64, pt
 
 	menu.Inline(
 		menu.Row(
-			createBtn(menu, langData["P_B_1"], fmt.Sprintf("LuckyPlaylists %s|%s|%s|a|%s|%s", videoid, uid, ptype, channel, fplay), ""),
-			createBtn(menu, langData["P_B_2"], fmt.Sprintf("LuckyPlaylists %s|%s|%s|v|%s|%s", videoid, uid, ptype, channel, fplay), ""),
+			createBtn(menu, langData["P_B_1"], fmt.Sprintf("LuckyPlaylists %s|%s|%s|a|%s|%s", videoid, uid, ptype, channel, fplay), "", 0, "", false),
+			createBtn(menu, langData["P_B_2"], fmt.Sprintf("LuckyPlaylists %s|%s|%s|v|%s|%s", videoid, uid, ptype, channel, fplay), "", 0, "", false),
 		),
 		menu.Row(
 			cloneButton(menu),
-			createBtn(menu, langData["CLOSE_BUTTON"], fmt.Sprintf("forceclose %s|%s", videoid, uid), ""),
+			createBtn(menu, langData["CLOSE_BUTTON"], fmt.Sprintf("forceclose %s|%s", videoid, uid), "", 0, "", false),
 		),
 	)
 	return menu
@@ -135,10 +135,10 @@ func LivestreamMarkup(langData map[string]string, videoid string, userID int64, 
 	uid := fmt.Sprintf("%d", userID)
 
 	menu.Inline(
-		menu.Row(createBtn(menu, langData["P_B_3"], fmt.Sprintf("LiveStream %s|%s|%s|%s|%s", videoid, uid, mode, channel, fplay), "")),
+		menu.Row(createBtn(menu, langData["P_B_3"], fmt.Sprintf("LiveStream %s|%s|%s|%s|%s", videoid, uid, mode, channel, fplay), "", 0, "", false)),
 		menu.Row(
 			cloneButton(menu),
-			createBtn(menu, langData["CLOSE_BUTTON"], fmt.Sprintf("forceclose %s|%s", videoid, uid), ""),
+			createBtn(menu, langData["CLOSE_BUTTON"], fmt.Sprintf("forceclose %s|%s", videoid, uid), "", 0, "", false),
 		),
 	)
 	return menu
@@ -155,13 +155,13 @@ func SliderMarkup(langData map[string]string, videoid string, userID int64, quer
 
 	menu.Inline(
 		menu.Row(
-			createBtn(menu, langData["P_B_1"], fmt.Sprintf("MusicStream %s|%s|a|%s|%s", videoid, uid, channel, fplay), ""),
-			createBtn(menu, langData["P_B_2"], fmt.Sprintf("MusicStream %s|%s|v|%s|%s", videoid, uid, channel, fplay), ""),
+			createBtn(menu, langData["P_B_1"], fmt.Sprintf("MusicStream %s|%s|a|%s|%s", videoid, uid, channel, fplay), "", 0, "", false),
+			createBtn(menu, langData["P_B_2"], fmt.Sprintf("MusicStream %s|%s|v|%s|%s", videoid, uid, channel, fplay), "", 0, "", false),
 		),
 		menu.Row(
-			createBtn(menu, "ʙᴀᴄᴋ", fmt.Sprintf("slider B|%s|%s|%s|%s|%s", queryType, query, uid, channel, fplay), ""),
-			createBtn(menu, langData["CLOSE_BUTTON"], fmt.Sprintf("forceclose %s|%s", query, uid), ""),
-			createBtn(menu, "ɴᴇxᴛ", fmt.Sprintf("slider F|%s|%s|%s|%s|%s", queryType, query, uid, channel, fplay), ""),
+			createBtn(menu, "ʙᴀᴄᴋ", fmt.Sprintf("slider B|%s|%s|%s|%s|%s", queryType, query, uid, channel, fplay), "", 0, "", false),
+			createBtn(menu, langData["CLOSE_BUTTON"], fmt.Sprintf("forceclose %s|%s", query, uid), "", 0, "", false),
+			createBtn(menu, "ɴᴇxᴛ", fmt.Sprintf("slider F|%s|%s|%s|%s|%s", queryType, query, uid, channel, fplay), "", 0, "", false),
 		),
 		menu.Row(cloneButton(menu)),
 	)
@@ -175,8 +175,8 @@ func TelegramMarkup(langData map[string]string, chatID int64) *tb.ReplyMarkup {
 
 	menu.Inline(
 		menu.Row(
-			createBtn(menu, "ɴᴇxᴛ", "PanelMarkup None|"+cid, ""),
-			createBtn(menu, langData["CLOSEMENU_BUTTON"], "close", ""),
+			createBtn(menu, "ɴᴇxᴛ", "PanelMarkup None|"+cid, "", 0, "", false),
+			createBtn(menu, langData["CLOSEMENU_BUTTON"], "close", "", 0, "", false),
 		),
 	)
 	return menu
@@ -188,19 +188,19 @@ func QueueMarkup(langData map[string]string, videoid string, chatID int64, botUs
 	cid := fmt.Sprintf("%d", chatID)
 
 	menu.Inline(
-		menu.Row(createBtn(menu, langData["S_B_3"], "", fmt.Sprintf("https://t.me/%s?startgroup=true", botUsername))),
+		menu.Row(createBtn(menu, langData["S_B_3"], "", fmt.Sprintf("https://t.me/%s?startgroup=true", botUsername), 0, "", false)),
 		menu.Row(
-			createBtn(menu, PlayEmoji, "ADMIN Resume|"+cid, ""),
-			createBtn(menu, PauseEmoji, "ADMIN Pause|"+cid, ""),
-			createBtn(menu, ReplayEmoji, "ADMIN Replay|"+cid, ""),
-			createBtn(menu, SkipEmoji, "ADMIN Skip|"+cid, ""),
-			createBtn(menu, StopEmoji, "ADMIN Stop|"+cid, ""),
+			createBtn(menu, PlayEmoji, "ADMIN Resume|"+cid, "", 0, "", false),
+			createBtn(menu, PauseEmoji, "ADMIN Pause|"+cid, "", 0, "", false),
+			createBtn(menu, ReplayEmoji, "ADMIN Replay|"+cid, "", 0, "", false),
+			createBtn(menu, SkipEmoji, "ADMIN Skip|"+cid, "", 0, "", false),
+			createBtn(menu, StopEmoji, "ADMIN Stop|"+cid, "", 0, "", false),
 		),
 		menu.Row(
-			createBtn(menu, "ᴀᴜᴛᴏ-ᴘʟᴀʏ", "ADMIN Autoplay|"+cid, ""),
+			createBtn(menu, "ᴀᴜᴛᴏ-ᴘʟᴀʏ", "ADMIN Autoplay|"+cid, "", 0, "", false),
 			cloneButton(menu),
 		),
-		menu.Row(createBtn(menu, "ᴍᴏʀᴇ", "PanelMarkup None|"+cid, "")),
+		menu.Row(createBtn(menu, "ᴍᴏʀᴇ", "PanelMarkup None|"+cid, "", 0, "", false)),
 	)
 	return menu
 }
@@ -211,22 +211,22 @@ func PanelMarkup1(langData map[string]string, videoid string, chatID int64, botU
 	cid := fmt.Sprintf("%d", chatID)
 
 	menu.Inline(
-		menu.Row(createBtn(menu, langData["S_B_3"], "", fmt.Sprintf("https://t.me/%s?startgroup=true", botUsername))),
+		menu.Row(createBtn(menu, langData["S_B_3"], "", fmt.Sprintf("https://t.me/%s?startgroup=true", botUsername), 0, "", false)),
 		menu.Row(
-			createBtn(menu, "sʜᴜғғʟᴇ", "ADMIN Shuffle|"+cid, ""),
-			createBtn(menu, "ʟᴏᴏᴘ", "ADMIN Loop|"+cid, ""),
+			createBtn(menu, "sʜᴜғғʟᴇ", "ADMIN Shuffle|"+cid, "", 0, "", false),
+			createBtn(menu, "ʟᴏᴏᴘ", "ADMIN Loop|"+cid, "", 0, "", false),
 		),
 		menu.Row(
-			createBtn(menu, "-10 sᴇᴄ", "ADMIN 1|"+cid, ""),
-			createBtn(menu, "+10 sᴇᴄ", "ADMIN 2|"+cid, ""),
+			createBtn(menu, "-10 sᴇᴄ", "ADMIN 1|"+cid, "", 0, "", false),
+			createBtn(menu, "+10 sᴇᴄ", "ADMIN 2|"+cid, "", 0, "", false),
 		),
 		menu.Row(
-			createBtn(menu, "ᴀᴜᴛᴏ-ᴘʟᴀʏ", "ADMIN Autoplay|"+cid, ""),
+			createBtn(menu, "ᴀᴜᴛᴏ-ᴘʟᴀʏ", "ADMIN Autoplay|"+cid, "", 0, "", false),
 			cloneButton(menu),
 		),
 		menu.Row(
-			createBtn(menu, "ʜᴏᴍᴇ", fmt.Sprintf("Pages Back|2|%s|%s", videoid, cid), ""),
-			createBtn(menu, "ɴᴇxᴛ", fmt.Sprintf("Pages Forw|2|%s|%s", videoid, cid), ""),
+			createBtn(menu, "ʜᴏᴍᴇ", fmt.Sprintf("Pages Back|2|%s|%s", videoid, cid), "", 0, "", false),
+			createBtn(menu, "ɴᴇxᴛ", fmt.Sprintf("Pages Forw|2|%s|%s", videoid, cid), "", 0, "", false),
 		),
 	)
 	return menu
@@ -238,19 +238,19 @@ func PanelMarkup2(langData map[string]string, videoid string, chatID int64, botU
 	cid := fmt.Sprintf("%d", chatID)
 
 	menu.Inline(
-		menu.Row(createBtn(menu, langData["S_B_3"], "", fmt.Sprintf("https://t.me/%s?startgroup=true", botUsername))),
+		menu.Row(createBtn(menu, langData["S_B_3"], "", fmt.Sprintf("https://t.me/%s?startgroup=true", botUsername), 0, "", false)),
 		menu.Row(
-			createBtn(menu, "0.5x", "SpeedUP "+cid+"|0.5", ""),
-			createBtn(menu, "0.75x", "SpeedUP "+cid+"|0.75", ""),
-			createBtn(menu, "1.0x", "SpeedUP "+cid+"|1.0", ""),
+			createBtn(menu, "0.5x", "SpeedUP "+cid+"|0.5", "", 0, "", false),
+			createBtn(menu, "0.75x", "SpeedUP "+cid+"|0.75", "", 0, "", false),
+			createBtn(menu, "1.0x", "SpeedUP "+cid+"|1.0", "", 0, "", false),
 		),
 		menu.Row(
-			createBtn(menu, "1.5x", "SpeedUP "+cid+"|1.5", ""),
-			createBtn(menu, "2.0x", "SpeedUP "+cid+"|2.0", ""),
+			createBtn(menu, "1.5x", "SpeedUP "+cid+"|1.5", "", 0, "", false),
+			createBtn(menu, "2.0x", "SpeedUP "+cid+"|2.0", "", 0, "", false),
 		),
 		menu.Row(
 			cloneButton(menu),
-			createBtn(menu, "ʙᴀᴄᴋ", fmt.Sprintf("Pages Back|1|%s|%s", videoid, cid), ""),
+			createBtn(menu, "ʙᴀᴄᴋ", fmt.Sprintf("Pages Back|1|%s|%s", videoid, cid), "", 0, "", false),
 		),
 	)
 	return menu
@@ -263,17 +263,17 @@ func PanelMarkup3(langData map[string]string, videoid string, chatID int64) *tb.
 
 	menu.Inline(
 		menu.Row(
-			createBtn(menu, "0.5x", "SpeedUP "+cid+"|0.5", ""),
-			createBtn(menu, "0.75x", "SpeedUP "+cid+"|0.75", ""),
-			createBtn(menu, "1.0x", "SpeedUP "+cid+"|1.0", ""),
+			createBtn(menu, "0.5x", "SpeedUP "+cid+"|0.5", "", 0, "", false),
+			createBtn(menu, "0.75x", "SpeedUP "+cid+"|0.75", "", 0, "", false),
+			createBtn(menu, "1.0x", "SpeedUP "+cid+"|1.0", "", 0, "", false),
 		),
 		menu.Row(
-			createBtn(menu, "1.5x", "SpeedUP "+cid+"|1.5", ""),
-			createBtn(menu, "2.0x", "SpeedUP "+cid+"|2.0", ""),
+			createBtn(menu, "1.5x", "SpeedUP "+cid+"|1.5", "", 0, "", false),
+			createBtn(menu, "2.0x", "SpeedUP "+cid+"|2.0", "", 0, "", false),
 		),
 		menu.Row(
 			cloneButton(menu),
-			createBtn(menu, "ʙᴀᴄᴋ", fmt.Sprintf("Pages Back|2|%s|%s", videoid, cid), ""),
+			createBtn(menu, "ʙᴀᴄᴋ", fmt.Sprintf("Pages Back|2|%s|%s", videoid, cid), "", 0, "", false),
 		),
 	)
 	return menu
@@ -286,7 +286,7 @@ func PanelMarkup4(langData map[string]string, videoid string, chatID int64, play
 	
 	// Append Home button to the timer markup
 	timerMenu.InlineKeyboard = append(timerMenu.InlineKeyboard, []tb.Btn{
-		createBtn(timerMenu, "ʜᴏᴍᴇ", fmt.Sprintf("MainMarkup %s|%d", videoid, chatID), ""),
+		createBtn(timerMenu, "ʜᴏᴍᴇ", fmt.Sprintf("MainMarkup %s|%d", videoid, chatID), "", 0, "", false),
 	})
 	return timerMenu
 }
@@ -297,21 +297,21 @@ func PanelMarkup5(langData map[string]string, videoid string, chatID int64, botU
 	cid := fmt.Sprintf("%d", chatID)
 
 	menu.Inline(
-		menu.Row(createBtn(menu, langData["S_B_3"], "", fmt.Sprintf("https://t.me/%s?startgroup=true", botUsername))),
+		menu.Row(createBtn(menu, langData["S_B_3"], "", fmt.Sprintf("https://t.me/%s?startgroup=true", botUsername), 0, "", false)),
 		menu.Row(
-			createBtn(menu, PlayEmoji, "ADMIN Resume|"+cid, ""),
-			createBtn(menu, PauseEmoji, "ADMIN Pause|"+cid, ""),
-			createBtn(menu, ReplayEmoji, "ADMIN Replay|"+cid, ""),
-			createBtn(menu, SkipEmoji, "ADMIN Skip|"+cid, ""),
-			createBtn(menu, StopEmoji, "ADMIN Stop|"+cid, ""),
+			createBtn(menu, PlayEmoji, "ADMIN Resume|"+cid, "", 0, "", false),
+			createBtn(menu, PauseEmoji, "ADMIN Pause|"+cid, "", 0, "", false),
+			createBtn(menu, ReplayEmoji, "ADMIN Replay|"+cid, "", 0, "", false),
+			createBtn(menu, SkipEmoji, "ADMIN Skip|"+cid, "", 0, "", false),
+			createBtn(menu, StopEmoji, "ADMIN Stop|"+cid, "", 0, "", false),
 		),
 		menu.Row(
-			createBtn(menu, "ᴀᴜᴛᴏ-ᴘʟᴀʏ", "ADMIN Autoplay|"+cid, ""),
+			createBtn(menu, "ᴀᴜᴛᴏ-ᴘʟᴀʏ", "ADMIN Autoplay|"+cid, "", 0, "", false),
 			cloneButton(menu),
 		),
 		menu.Row(
-			createBtn(menu, "ʜᴏᴍᴇ", fmt.Sprintf("MainMarkup %s|%s", videoid, cid), ""),
-			createBtn(menu, "ɴᴇxᴛ", fmt.Sprintf("Pages Forw|1|%s|%s", videoid, cid), ""),
+			createBtn(menu, "ʜᴏᴍᴇ", fmt.Sprintf("MainMarkup %s|%s", videoid, cid), "", 0, "", false),
+			createBtn(menu, "ɴᴇxᴛ", fmt.Sprintf("Pages Forw|1|%s|%s", videoid, cid), "", 0, "", false),
 		),
 	)
 	return menu
@@ -324,8 +324,8 @@ func PanelMarkupClone(langData map[string]string, videoid string, chatID int64, 
 
 	// Insert seek buttons before Autoplay row
 	seekRow := []tb.Btn{
-		createBtn(menu, "-20s", "ADMIN SeekBack|"+cid, ""),
-		createBtn(menu, "+20s", "ADMIN SeekForward|"+cid, ""),
+		createBtn(menu, "-20s", "ADMIN SeekBack|"+cid, "", 0, "", false),
+		createBtn(menu, "+20s", "ADMIN SeekForward|"+cid, "", 0, "", false),
 	}
 
 	// Reconstruct keyboard layout to match pyrogram design
