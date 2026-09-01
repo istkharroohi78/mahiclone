@@ -13,8 +13,6 @@ const (
 	PlayEmoji   = "▶️"
 	PauseEmoji  = "⏸️"
 	ReplayEmoji = "🔁"
-	SkipEmoji   = "⏭️"
-	StopEmoji   = "🛑"
 )
 
 // timeToSeconds converts a time string like "03:15" to 195 seconds
