@@ -23,17 +23,6 @@ func timeToSeconds(t string) int {
 
 // createBtn generates a Telebot inline button. 
 // It splits Pyrogram-style callbacks (e.g., "ADMIN Pause|123") into Telebot's unique ID and payload.
-func createBtn(menu *tb.ReplyMarkup, text string, cb string, url string) tb.Btn {
-	if url != "" {
-		return menu.URL(text, url)
-	}
-	parts := strings.SplitN(cb, " ", 2)
-	if len(parts) == 2 {
-		return menu.Data(text, parts[0], parts[1])
-	}
-	return menu.Data(text, cb)
-}
-
 func cloneButton(menu *tb.ReplyMarkup) tb.Btn {
 	return createBtn(menu, "ᴄʟᴏɴᴇ-ᴍᴇ", "", "https://t.me/clone_MUSICrobot")
 }
