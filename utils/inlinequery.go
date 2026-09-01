@@ -1,4 +1,4 @@
-package plugins
+package utils
 
 import (
 	tb "gopkg.in/tucnak/telebot.v2"
