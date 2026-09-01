@@ -57,3 +57,7 @@ func Stream(b *tb.Bot, m *tb.Message, chatID, origChatID int64, result map[strin
 		b.Send(m.Chat, &tb.Photo{File: tb.FromURL("https://telegra.ph/file/2e3d368e77c449c287430.jpg"), Caption: caption}, tb.ModeMarkdown)
 	}
 }
+
+func IncrementPlayed() {
+	// Logic to count played songs
+}
