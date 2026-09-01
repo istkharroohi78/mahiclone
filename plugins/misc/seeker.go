@@ -1,6 +1,7 @@
 package misc
 
 import (
+	"strconv"
 	"time"
 
 	"ANJALI/utils/database"
@@ -14,13 +15,20 @@ func StartSeekerLoop() {
 			time.Sleep(1 * time.Second)
 
 			// Logic translated: Update 'played' seconds in DB/Memory
-			activeChats := database.GetActiveChats() // Assuming this returns []int64
+			activeChats := database.GetActiveChats() // This actually returns []string
 			for _, chatID := range activeChats {
-				if !database.IsMusicPlaying(chatID) {
+				
+				// Convert chatID from string to int64
+				chatIDInt, err := strconv.ParseInt(chatID, 10, 64)
+				if err != nil {
 					continue
 				}
 
-				queue := stream.GetQueue(chatID)
+				if !database.IsMusicPlaying(chatIDInt) {
+					continue
+				}
+
+				queue := stream.GetQueue(chatIDInt)
 				if len(queue) == 0 {
 					continue
 				}
@@ -35,7 +43,8 @@ func StartSeekerLoop() {
 				}
 
 				// Increment played seconds safely via stream package setter
-				stream.IncrementPlayed(chatID)
+				// The compiler expects 0 arguments for this function: want ()
+				stream.IncrementPlayed()
 			}
 		}
 	}()
