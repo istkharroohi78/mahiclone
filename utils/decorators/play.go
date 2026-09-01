@@ -1,0 +1,170 @@
+package decorators
+
+import (
+	"strings"
+	"time"
+
+	tb "gopkg.in/tucnak/telebot.v2"
+
+	"ANJALI/config"
+	mystrings "ANJALI/strings"
+	"ANJALI/utils/database"
+	"ANJALI/utils/inline"
+)
+
+// PlayContext holds all the parsed variables needed for the final play command
+type PlayContext struct {
+	LangData map[string]string
+	ChatID   int64
+	Video    bool
+	Channel  string
+	PlayMode string
+	URL      string
+	FPlay    bool
+}
+
+func isSudo(userID int64) bool {
+	for _, id := range config.Sudoers {
+		if id == userID {
+			return true
+		}
+	}
+	return false
+}
+
+// PlayWrapper handles maintenance checks, admin rights, and extracting media/urls
+func PlayWrapper(b *tb.Bot, next func(*tb.Message, *PlayContext)) func(*tb.Message) {
+	return func(m *tb.Message) {
+		langData := mystrings.GetString(database.GetLang(m.Chat.ID))
+
+		// 1. Sender Chat (Anonymous Admin) Check
+		if m.Sender != nil && m.Sender.ID == 0 { // In Telebot, Anonymous admins often appear with ID 0 or specific channel IDs
+			upl := &tb.ReplyMarkup{}
+			upl.Inline(upl.Row(upl.Data("ʜᴏᴡ ᴛᴏ ғɪx ?", "LuckymousAdmin")))
+			b.Send(m.Chat, langData["general_3"], &tb.SendOptions{ReplyMarkup: upl})
+			return
+		}
+
+		// 2. Maintenance Check
+		if database.IsMaintenance() && !isSudo(m.Sender.ID) {
+			b.Send(m.Chat, b.Me.Username+" ɪs ᴜɴᴅᴇʀ ᴍᴀɪɴᴛᴇɴᴀɴᴄᴇ, ᴠɪsɪᴛ sᴜᴘᴘᴏʀᴛ ᴄʜᴀᴛ ғᴏʀ ᴋɴᴏᴡɪɴɢ ᴛʜᴇ ʀᴇᴀsᴏɴ.")
+			return
+		}
+
+		// Delete trigger message
+		b.Delete(m)
+
+		ctx := &PlayContext{
+			LangData: langData,
+			ChatID:   m.Chat.ID,
+		}
+
+		// 3. Extract Audio/Video/URL
+		hasMedia := false
+		if m.ReplyTo != nil {
+			if m.ReplyTo.Audio != nil || m.ReplyTo.Voice != nil || m.ReplyTo.Video != nil || m.ReplyTo.Document != nil {
+				hasMedia = true
+			}
+		}
+
+		// Assume you have a YouTube URL extractor helper
+		// ctx.URL = YouTube.ExtractURL(m.Text) 
+		
+		if !hasMedia && ctx.URL == "" {
+			args := strings.Split(m.Text, " ")
+			if len(args) < 2 {
+				if strings.Contains(m.Text, "stream") {
+					b.Send(m.Chat, langData["str_1"])
+					return
+				}
+				
+				// Send Playlist Photo if no query provided
+				menu := inline.BotPlaylistMarkup(langData)
+				photo := &tb.Photo{File: tb.FromURL(config.PlaylistImgURL), Caption: langData["play_18"]}
+				b.Send(m.Chat, photo, &tb.SendOptions{ReplyMarkup: menu})
+				return
+			}
+		}
+
+		// 4. CMode (Channel Play) Check
+		if strings.HasPrefix(m.Text, "/c") {
+			cmodeID := database.GetCMode(m.Chat.ID)
+			if cmodeID == 0 {
+				b.Send(m.Chat, langData["setting_7"])
+				return
+			}
+			chat, err := b.ChatByID(cmodeID)
+			if err != nil {
+				b.Send(m.Chat, langData["cplay_4"])
+				return
+			}
+			ctx.ChatID = cmodeID
+			ctx.Channel = chat.Title
+		}
+
+		// 5. Play Type (Everyone vs Admins)
+		ctx.PlayMode = database.GetPlayMode(m.Chat.ID)
+		playTy := database.GetPlayType(m.Chat.ID)
+
+		if playTy != "Everyone" && !isSudo(m.Sender.ID) {
+			admins := database.GetAdminList(m.Chat.ID)
+			if len(admins) == 0 {
+				b.Send(m.Chat, langData["admin_13"])
+				return
+			}
+			
+			isAdmin := false
+			for _, adminID := range admins {
+				if m.Sender.ID == adminID {
+					isAdmin = true
+					break
+				}
+			}
+			if !isAdmin {
+				b.Send(m.Chat, langData["play_4"])
+				return
+			}
+		}
+
+		// 6. Video and Force Play Flags
+		if strings.HasPrefix(m.Text, "/v") || strings.Contains(m.Text, "-v") {
+			ctx.Video = true
+		}
+		if strings.HasSuffix(strings.Split(m.Text, " ")[0], "e") {
+			if !database.IsActiveChat(ctx.ChatID) {
+				b.Send(m.Chat, langData["play_16"])
+				return
+			}
+			ctx.FPlay = true
+		}
+
+		// 7. Assistant Auto-Join Logic
+		if !database.IsActiveChat(ctx.ChatID) {
+			// Note: Telebot cannot act as a Userbot (Assistant). 
+			// You will need a separate MTProto client (like gotgproto) to actually join the chat.
+			// This section generates the invite link for your external Assistant client to use.
+			
+			inviteLink := ""
+			if m.Chat.Username != "" {
+				inviteLink = "https://t.me/" + m.Chat.Username
+			} else {
+				link, err := b.ExportMessageLink(m.Chat, 0) // Workaround to get private chat link
+				if err == nil {
+					inviteLink = link
+				}
+			}
+
+			if inviteLink != "" {
+				myu, _ := b.Send(m.Chat, langData["call_4"])
+				
+				// TRIGGER YOUR MTPROTO ASSISTANT HERE TO JOIN `inviteLink`
+				time.Sleep(3 * time.Second)
+				
+				b.Edit(myu, langData["call_5"])
+			}
+		}
+
+		// Proceed to final Play command
+		next(m, ctx)
+	}
+}
