@@ -281,14 +281,47 @@ func PanelMarkup3(langData map[string]string, videoid string, chatID int64) *tb.
 
 // PanelMarkup4
 func PanelMarkup4(langData map[string]string, videoid string, chatID int64, played string, dur string) *tb.ReplyMarkup {
-	// Reuses timer logic
-	timerMenu := StreamMarkupTimer(langData, chatID, played, dur)
+	playedSec := timeToSeconds(played)
+	durationSec := 0
 	
-	// Append Home button to the timer markup
-	timerMenu.InlineKeyboard = append(timerMenu.InlineKeyboard, []tb.Btn{
-		createBtn(timerMenu, "ʜᴏᴍᴇ", fmt.Sprintf("MainMarkup %s|%d", videoid, chatID), "", 0, "", false),
-	})
-	return timerMenu
+	if strings.ToLower(dur) != "live" && strings.ToLower(dur) != "unknown" && dur != "0" {
+		durationSec = timeToSeconds(dur)
+	}
+
+	totalBlocks := 10
+	filledBlocks := 0
+	if durationSec > 0 {
+		filledBlocks = int((float64(playedSec) / float64(durationSec)) * float64(totalBlocks))
+	}
+	
+	if filledBlocks < 0 {
+		filledBlocks = 0
+	} else if filledBlocks >= totalBlocks {
+		filledBlocks = totalBlocks - 1
+	}
+
+	bar := strings.Repeat("▰", filledBlocks) + "🎵" + strings.Repeat("▱", totalBlocks-filledBlocks-1)
+	timerText := fmt.Sprintf("%s %s %s", played, bar, dur)
+	cid := fmt.Sprintf("%d", chatID)
+
+	menu := &tb.ReplyMarkup{}
+	menu.Inline(
+		menu.Row(createBtn(menu, timerText, "GetTimer", "", 0, "", false)),
+		menu.Row(
+			createBtn(menu, PlayEmoji, "ADMIN Resume|"+cid, "", 0, "", false),
+			createBtn(menu, PauseEmoji, "ADMIN Pause|"+cid, "", 0, "", false),
+			createBtn(menu, ReplayEmoji, "ADMIN Replay|"+cid, "", 0, "", false),
+			createBtn(menu, SkipEmoji, "ADMIN Skip|"+cid, "", 0, "", false),
+			createBtn(menu, StopEmoji, "ADMIN Stop|"+cid, "", 0, "", false),
+		),
+		menu.Row(
+			createBtn(menu, "ᴀᴜᴛᴏ-ᴘʟᴀʏ", "ADMIN Autoplay|"+cid, "", 0, "", false),
+			cloneButton(menu),
+		),
+		menu.Row(createBtn(menu, langData["CLOSE_BUTTON"], "close", "", 0, "", false)),
+		menu.Row(createBtn(menu, "ʜᴏᴍᴇ", fmt.Sprintf("MainMarkup %s|%d", videoid, chatID), "", 0, "", false)),
+	)
+	return menu
 }
 
 // PanelMarkup5
@@ -319,23 +352,48 @@ func PanelMarkup5(langData map[string]string, videoid string, chatID int64, botU
 
 // PanelMarkupClone
 func PanelMarkupClone(langData map[string]string, videoid string, chatID int64, played string, dur string) *tb.ReplyMarkup {
-	menu := StreamMarkupTimer(langData, chatID, played, dur)
-	cid := fmt.Sprintf("%d", chatID)
-
-	// Insert seek buttons before Autoplay row
-	seekRow := []tb.Btn{
-		createBtn(menu, "-20s", "ADMIN SeekBack|"+cid, "", 0, "", false),
-		createBtn(menu, "+20s", "ADMIN SeekForward|"+cid, "", 0, "", false),
+	playedSec := timeToSeconds(played)
+	durationSec := 0
+	
+	if strings.ToLower(dur) != "live" && strings.ToLower(dur) != "unknown" && dur != "0" {
+		durationSec = timeToSeconds(dur)
 	}
 
-	// Reconstruct keyboard layout to match pyrogram design
-	var newKeyboard [][]tb.Btn
-	newKeyboard = append(newKeyboard, menu.InlineKeyboard[0]) // Timer
-	newKeyboard = append(newKeyboard, menu.InlineKeyboard[1]) // Play controls
-	newKeyboard = append(newKeyboard, seekRow)                // Seek row
-	newKeyboard = append(newKeyboard, menu.InlineKeyboard[2]) // Autoplay & Clone
-	newKeyboard = append(newKeyboard, menu.InlineKeyboard[3]) // Close
+	totalBlocks := 10
+	filledBlocks := 0
+	if durationSec > 0 {
+		filledBlocks = int((float64(playedSec) / float64(durationSec)) * float64(totalBlocks))
+	}
+	
+	if filledBlocks < 0 {
+		filledBlocks = 0
+	} else if filledBlocks >= totalBlocks {
+		filledBlocks = totalBlocks - 1
+	}
 
-	menu.InlineKeyboard = newKeyboard
+	bar := strings.Repeat("▰", filledBlocks) + "🎵" + strings.Repeat("▱", totalBlocks-filledBlocks-1)
+	timerText := fmt.Sprintf("%s %s %s", played, bar, dur)
+	cid := fmt.Sprintf("%d", chatID)
+
+	menu := &tb.ReplyMarkup{}
+	menu.Inline(
+		menu.Row(createBtn(menu, timerText, "GetTimer", "", 0, "", false)),
+		menu.Row(
+			createBtn(menu, PlayEmoji, "ADMIN Resume|"+cid, "", 0, "", false),
+			createBtn(menu, PauseEmoji, "ADMIN Pause|"+cid, "", 0, "", false),
+			createBtn(menu, ReplayEmoji, "ADMIN Replay|"+cid, "", 0, "", false),
+			createBtn(menu, SkipEmoji, "ADMIN Skip|"+cid, "", 0, "", false),
+			createBtn(menu, StopEmoji, "ADMIN Stop|"+cid, "", 0, "", false),
+		),
+		menu.Row(
+			createBtn(menu, "-20s", "ADMIN SeekBack|"+cid, "", 0, "", false),
+			createBtn(menu, "+20s", "ADMIN SeekForward|"+cid, "", 0, "", false),
+		),
+		menu.Row(
+			createBtn(menu, "ᴀᴜᴛᴏ-ᴘʟᴀʏ", "ADMIN Autoplay|"+cid, "", 0, "", false),
+			cloneButton(menu),
+		),
+		menu.Row(createBtn(menu, langData["CLOSE_BUTTON"], "close", "", 0, "", false)),
+	)
 	return menu
 }
