@@ -8,13 +8,6 @@ import (
 	tb "gopkg.in/tucnak/telebot.v2"
 )
 
-// Standard Unicode Emojis (Telegram Bot API doesn't natively support premium emojis in inline buttons)
-const (
-	PlayEmoji   = "▶️"
-	PauseEmoji  = "⏸️"
-	ReplayEmoji = "🔁"
-)
-
 // timeToSeconds converts a time string like "03:15" to 195 seconds
 func timeToSeconds(t string) int {
 	parts := strings.Split(t, ":")
