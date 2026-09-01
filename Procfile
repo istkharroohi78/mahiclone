@@ -1,0 +1,1 @@
+worker: ./shivmusic_bot
