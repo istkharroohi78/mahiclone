@@ -84,7 +84,7 @@ func RegisterBroadcastHandlers(b *tb.Bot) {
 				// --- 🚀 LIVE PROGRESS BAR UPDATE ---
 				if time.Since(lastEditTime) > editInterval {
 					// GetProgressBar function is reused from cbroadcast.go
-					bar := GetProgressBar(processed, totalTargets, 15)
+					bar := GetProgressBar(processed, totalTargets)
 					liveText := fmt.Sprintf(`📡 **Live Broadcast Progress**
 
 **Progress:**
@@ -116,7 +116,7 @@ func RegisterBroadcastHandlers(b *tb.Bot) {
 
 				// --- 🚀 LIVE PROGRESS BAR UPDATE ---
 				if time.Since(lastEditTime) > editInterval {
-					bar := GetProgressBar(processed, totalTargets, 15)
+					bar := GetProgressBar(processed, totalTargets)
 					liveText := fmt.Sprintf(`📡 **Live Broadcast Progress**
 
 **Progress:**
@@ -133,7 +133,7 @@ func RegisterBroadcastHandlers(b *tb.Bot) {
 			}
 
 			// --- FINAL REPORT ---
-			finalBar := GetProgressBar(totalTargets, totalTargets, 15)
+			finalBar := GetProgressBar(totalTargets, totalTargets)
 			finalText := fmt.Sprintf(`✅ **Broadcast Completed!**
 
 **Final Status:**
