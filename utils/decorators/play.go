@@ -7,7 +7,7 @@ import (
 	tb "gopkg.in/tucnak/telebot.v2"
 
 	"ANJALI/config"
-	mystrings "ANJALI/strings"
+	mystrings "ANJALI/i18n"
 	"ANJALI/utils/database"
 	"ANJALI/utils/inline"
 )
