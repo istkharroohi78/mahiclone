@@ -1,6 +1,7 @@
 package decorators
 
 import (
+	"fmt"
 	"strings"
 	"time"
 
@@ -77,7 +78,8 @@ func PlayWrapper(b *tb.Bot, next func(*tb.Message, *PlayContext)) func(*tb.Messa
 				
 				// Send Playlist Photo if no query provided
 				menu := inline.BotPlaylistMarkup(langData)
-				photo := &tb.Photo{File: tb.FromURL(config.PlaylistImgURL), Caption: langData["play_18"]}
+				// Hardcoded fallback image to fix undefined config.PlaylistImgURL error
+				photo := &tb.Photo{File: tb.FromURL("https://files.catbox.moe/6r97s4.jpg"), Caption: langData["play_18"]}
 				b.Send(m.Chat, photo, &tb.SendOptions{ReplyMarkup: menu})
 				return
 			}
@@ -90,7 +92,9 @@ func PlayWrapper(b *tb.Bot, next func(*tb.Message, *PlayContext)) func(*tb.Messa
 				b.Send(m.Chat, langData["setting_7"])
 				return
 			}
-			chat, err := b.ChatByID(cmodeID)
+			
+			// Fixed int64 to string conversion error for ChatByID
+			chat, err := b.ChatByID(fmt.Sprintf("%d", cmodeID))
 			if err != nil {
 				b.Send(m.Chat, langData["cplay_4"])
 				return
@@ -154,12 +158,8 @@ func PlayWrapper(b *tb.Bot, next func(*tb.Message, *PlayContext)) func(*tb.Messa
 			inviteLink := ""
 			if m.Chat.Username != "" {
 				inviteLink = "https://t.me/" + m.Chat.Username
-			} else {
-				link, err := b.ExportMessageLink(m.Chat, 0) 
-				if err == nil {
-					inviteLink = link
-				}
-			}
+			} 
+			// ExportMessageLink removed entirely as it doesn't exist in telebot.v2
 
 			if inviteLink != "" {
 				myu, _ := b.Send(m.Chat, langData["call_4"])
