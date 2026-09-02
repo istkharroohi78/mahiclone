@@ -15,7 +15,7 @@ var IsCGbanRunning bool
 func RegisterGbanHandlers(b *tb.Bot) {
 	// MAIN BOT GBAN
 	b.Handle("/gban", func(m *tb.Message) {
-		if !IsSudoer(int64(m.Sender.ID)) {
+		if !utils.IsSudoer(int64(m.Sender.ID)) {
 			return
 		}
 
@@ -25,7 +25,7 @@ func RegisterGbanHandlers(b *tb.Bot) {
 			return
 		}
 
-		if user.ID == m.Sender.ID || IsSudoer(int64(user.ID)) {
+		if user.ID == m.Sender.ID || utils.IsSudoer(int64(user.ID)) {
 			b.Send(m.Chat, "❌ You cannot gban yourself or another Sudoer.")
 			return
 		}
@@ -51,7 +51,7 @@ func RegisterGbanHandlers(b *tb.Bot) {
 
 	// CLONE BOT GBAN
 	b.Handle("/cgban", func(m *tb.Message) {
-		if !IsSudoer(int64(m.Sender.ID)) {
+		if !utils.IsSudoer(int64(m.Sender.ID)) {
 			return
 		}
 		if IsCGbanRunning {
@@ -75,7 +75,7 @@ func RegisterGbanHandlers(b *tb.Bot) {
 	})
 
 	b.Handle("/stopcgban", func(m *tb.Message) {
-		if !IsSudoer(int64(m.Sender.ID)) {
+		if !utils.IsSudoer(int64(m.Sender.ID)) {
 			return
 		}
 		IsCGbanRunning = false
