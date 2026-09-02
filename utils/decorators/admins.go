@@ -5,23 +5,14 @@ import (
 
 	"ANJALI/config"
 	"ANJALI/utils"
+	"ANJALI/utils/database"
 
 	tb "gopkg.in/tucnak/telebot.v2"
 )
 
-// IsSudoer checks if a user is in the global sudoers list
-func IsSudoer(userID int64) bool {
-	for _, id := range config.LoadConfig().Sudoers {
-		if id == userID {
-			return true
-		}
-	}
-	return false
-}
-
 // AdminRightsCheck wraps commands to ensure only authorized users or admins execute them
 func AdminRightsCheck(b *tb.Bot, m *tb.Message, next func(b *tb.Bot, m *tb.Message, chatID int64)) {
-	if utils.IsMaintenance() && !IsSudoer(int64(m.Sender.ID)) {
+	if database.IsMaintenance() && !utils.IsSudoer(int64(m.Sender.ID)) {
 		b.Send(m.Chat, fmt.Sprintf("%s ɪs ᴜɴᴅᴇʀ ᴍᴀɪɴᴛᴇɴᴀɴᴄᴇ, ᴠɪsɪᴛ [sᴜᴘᴘᴏʀᴛ ᴄʜᴀᴛ](%s) ғᴏʀ ᴋɴᴏᴡɪɴɢ ᴛʜᴇ ʀᴇᴀsᴏɴ.", b.Me.FirstName, config.LoadConfig().SupportChat), tb.ModeMarkdown)
 		return
 	}
@@ -31,7 +22,7 @@ func AdminRightsCheck(b *tb.Bot, m *tb.Message, next func(b *tb.Bot, m *tb.Messa
 	var chatID int64 = m.Chat.ID
 	// Channel Play check logic
 	if len(m.Text) > 1 && m.Text[1] == 'c' {
-		linkedChat := utils.GetCMode(m.Chat.ID)
+		linkedChat := database.GetCMode(m.Chat.ID)
 		if linkedChat == 0 {
 			b.Send(m.Chat, "⚠️ Channel play is not configured.")
 			return
@@ -39,13 +30,21 @@ func AdminRightsCheck(b *tb.Bot, m *tb.Message, next func(b *tb.Bot, m *tb.Messa
 		chatID = linkedChat
 	}
 
-	if !utils.IsActiveChat(chatID) {
+	// Active Chat Check (using the GetActiveChats array from database)
+	isActive := false
+	for _, id := range database.GetActiveChats() {
+		if id == chatID {
+			isActive = true
+			break
+		}
+	}
+	if !isActive {
 		b.Send(m.Chat, "⚠️ No active stream in this chat.")
 		return
 	}
 
-	if !utils.IsNonAdminChat(m.Chat.ID) && !IsSudoer(int64(m.Sender.ID)) {
-		adminList := utils.GetAdminCache(m.Chat.ID)
+	if !database.IsNonAdminChat(m.Chat.ID) && !utils.IsSudoer(int64(m.Sender.ID)) {
+		adminList := database.GetAdminCache(m.Chat.ID)
 		isAdmin := false
 		for _, adminID := range adminList {
 			if adminID == int64(m.Sender.ID) {
@@ -55,8 +54,8 @@ func AdminRightsCheck(b *tb.Bot, m *tb.Message, next func(b *tb.Bot, m *tb.Messa
 		}
 
 		if !isAdmin {
-			if utils.IsSkipMode(m.Chat.ID) {
-				votesNeeded := utils.GetUpvoteCount(chatID)
+			if database.IsSkipMode(m.Chat.ID) {
+				votesNeeded := database.GetUpvoteCount(chatID)
 				text := fmt.Sprintf(`<b>ᴀᴅᴍɪɴ ʀɪɢʜᴛs ɴᴇᴇᴅᴇᴅ</b>
 				
 ʀᴇғʀᴇsʜ ᴀᴅᴍɪɴ ᴄᴀᴄʜᴇ ᴠɪᴀ : /reload
@@ -79,15 +78,15 @@ func AdminRightsCheck(b *tb.Bot, m *tb.Message, next func(b *tb.Bot, m *tb.Messa
 
 // ActualAdminCB checks if the callback query is executed by an admin
 func ActualAdminCB(b *tb.Bot, c *tb.Callback, next func(b *tb.Bot, c *tb.Callback)) {
-	if utils.IsMaintenance() && !IsSudoer(int64(c.Sender.ID)) {
+	if database.IsMaintenance() && !utils.IsSudoer(int64(c.Sender.ID)) {
 		b.Respond(c, &tb.CallbackResponse{Text: "Bot is under maintenance.", ShowAlert: true})
 		return
 	}
 
-	if c.Message.Chat.Type != tb.ChatPrivate && !utils.IsNonAdminChat(c.Message.Chat.ID) {
+	if c.Message.Chat.Type != tb.ChatPrivate && !database.IsNonAdminChat(c.Message.Chat.ID) {
 		member, err := b.ChatMemberOf(c.Message.Chat, c.Sender)
 		if err != nil || (member.Role != tb.Administrator && member.Role != tb.Creator) {
-			if !IsSudoer(int64(c.Sender.ID)) {
+			if !utils.IsSudoer(int64(c.Sender.ID)) {
 				b.Respond(c, &tb.CallbackResponse{Text: "❌ Admin rights needed.", ShowAlert: true})
 				return
 			}
