@@ -5,6 +5,7 @@ import (
 	"strconv"
 	"strings"
 
+	"ANJALI/utils"
 	"ANJALI/utils/database"
 
 	tb "gopkg.in/tucnak/telebot.v2"
@@ -12,7 +13,7 @@ import (
 
 func RegisterBlUserHandlers(b *tb.Bot) {
 	b.Handle("/bluser", func(m *tb.Message) {
-		if !IsSudoer(int64(m.Sender.ID)) {
+		if !utils.IsSudoer(int64(m.Sender.ID)) {
 			return
 		}
 
@@ -36,7 +37,7 @@ func RegisterBlUserHandlers(b *tb.Bot) {
 		}
 
 		// Prevent banning the bot owner or oneself
-		if targetID == int64(m.Sender.ID) || IsSudoer(targetID) {
+		if targetID == int64(m.Sender.ID) || utils.IsSudoer(targetID) {
 			b.Send(m.Chat, "❌ **You cannot blacklist yourself or another Sudoer.**", tb.ModeMarkdown)
 			return
 		}
@@ -46,7 +47,7 @@ func RegisterBlUserHandlers(b *tb.Bot) {
 	})
 
 	b.Handle("/unbluser", func(m *tb.Message) {
-		if !IsSudoer(int64(m.Sender.ID)) {
+		if !utils.IsSudoer(int64(m.Sender.ID)) {
 			return
 		}
 
