@@ -28,7 +28,7 @@ var (
 	skipMode         = make(map[int64]bool)
 	muteMode         = make(map[int64]bool)
 	autoplayMode     = make(map[int64]bool)
-	adminCache       = make(map[int64][]int64) // Added for GetAdminCache
+	adminCache       = make(map[int64][]int64) 
 
 	dbMutex sync.RWMutex
 )
@@ -39,16 +39,16 @@ var (
 	SudoersDB          *mongo.Collection
 	BlockedDB          *mongo.Collection
 	GBanDB             *mongo.Collection
-	BlacklistedChatsDB *mongo.Collection // Added for Blchat plugin
-	ServedChatsDB      *mongo.Collection // Added for Active plugin
-	DailyStatsDB       *mongo.Collection // Added for Active plugin
+	BlacklistedChatsDB *mongo.Collection
+	ServedChatsDB      *mongo.Collection 
+	DailyStatsDB       *mongo.Collection 
 )
 
 func init() {
 	rand.Seed(time.Now().UnixNano())
 }
 
-// --- Added Missing Functions ---
+// --- General Functions ---
 
 func GetLang(chatID int64) string {
 	dbMutex.RLock()
@@ -56,7 +56,13 @@ func GetLang(chatID int64) string {
 	if val, ok := langMap[chatID]; ok {
 		return val
 	}
-	return "en" // Default language
+	return "en" 
+}
+
+func SetLang(chatID int64, lang string) {
+	dbMutex.Lock()
+	langMap[chatID] = lang
+	dbMutex.Unlock()
 }
 
 func IsNonAdminChat(chatID int64) bool {
@@ -71,6 +77,18 @@ func GetAdminCache(chatID int64) []int64 {
 	return adminCache[chatID]
 }
 
+func GetActiveChats() []int64 {
+	dbMutex.RLock()
+	defer dbMutex.RUnlock()
+	var chats []int64
+	for chatID, active := range activeChats {
+		if active {
+			chats = append(chats, chatID)
+		}
+	}
+	return chats
+}
+
 func GetActiveVideoChats() []int64 {
 	dbMutex.RLock()
 	defer dbMutex.RUnlock()
@@ -83,7 +101,7 @@ func GetActiveVideoChats() []int64 {
 	return chats
 }
 
-// --- MongoDB Chat Blacklist Functions ---
+// --- MongoDB Chat Blacklist Functions (Fixed returns) ---
 
 func GetBlacklistedChats() []int64 {
 	var result []int64
@@ -106,21 +124,37 @@ func GetBlacklistedChats() []int64 {
 	return result
 }
 
-func BlacklistChat(chatID int64) {
+func BlacklistChat(chatID int64) bool {
 	if BlacklistedChatsDB == nil {
-		return
+		return false
 	}
-	BlacklistedChatsDB.UpdateOne(context.TODO(), bson.M{"chat_id": chatID}, bson.M{"$set": bson.M{"chat_id": chatID}}, options.Update().SetUpsert(true))
+	_, err := BlacklistedChatsDB.UpdateOne(context.TODO(), bson.M{"chat_id": chatID}, bson.M{"$set": bson.M{"chat_id": chatID}}, options.Update().SetUpsert(true))
+	return err == nil
 }
 
-func WhitelistChat(chatID int64) {
+func WhitelistChat(chatID int64) bool {
 	if BlacklistedChatsDB == nil {
-		return
+		return false
 	}
-	BlacklistedChatsDB.DeleteOne(context.TODO(), bson.M{"chat_id": chatID})
+	_, err := BlacklistedChatsDB.DeleteOne(context.TODO(), bson.M{"chat_id": chatID})
+	return err == nil
 }
 
-// --- MongoDB Served Chats Functions ---
+// --- MongoDB Banned Users Functions (NEW) ---
+
+func AddBannedUser(userID int64) bool {
+	if BlockedDB == nil { return false }
+	_, err := BlockedDB.UpdateOne(context.TODO(), bson.M{"user_id": userID}, bson.M{"$set": bson.M{"user_id": userID}}, options.Update().SetUpsert(true))
+	return err == nil
+}
+
+func RemoveBannedUser(userID int64) bool {
+	if BlockedDB == nil { return false }
+	_, err := BlockedDB.DeleteOne(context.TODO(), bson.M{"user_id": userID})
+	return err == nil
+}
+
+// --- MongoDB Served Chats & Users Functions ---
 
 func GetServedChats() []int64 {
 	var result []int64
@@ -138,6 +172,23 @@ func GetServedChats() []int64 {
 		}
 		if err := cursor.Decode(&doc); err == nil {
 			result = append(result, doc.ChatID)
+		}
+	}
+	return result
+}
+
+func GetServedUsers() []int64 {
+	var result []int64
+	if AuthDB == nil { return result }
+	cursor, err := AuthDB.Find(context.TODO(), bson.M{})
+	if err != nil { return result }
+	defer cursor.Close(context.TODO())
+	for cursor.Next(context.TODO()) {
+		var doc struct {
+			UserID int64 `bson:"user_id"`
+		}
+		if err := cursor.Decode(&doc); err == nil {
+			result = append(result, doc.UserID)
 		}
 	}
 	return result
@@ -166,10 +217,33 @@ func GetPlaytype(chatID int64) string {
 	return "Everyone"
 }
 
+// Wrapper to fix spelling error in decorators/play.go
+func GetPlayType(chatID int64) string {
+	return GetPlaytype(chatID)
+}
+
 func SetPlaytype(chatID int64, mode string) {
 	dbMutex.Lock()
 	playType[chatID] = mode
 	dbMutex.Unlock()
+}
+
+func GetPlayMode(chatID int64) string {
+	dbMutex.RLock()
+	defer dbMutex.RUnlock()
+	if val, ok := playMode[chatID]; ok {
+		return val
+	}
+	return "Direct"
+}
+
+func GetCMode(chatID int64) int64 {
+	dbMutex.RLock()
+	defer dbMutex.RUnlock()
+	if val, ok := channelConnect[chatID]; ok {
+		return val
+	}
+	return 0
 }
 
 // --- Status Modifiers ---
