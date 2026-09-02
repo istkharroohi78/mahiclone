@@ -28,21 +28,119 @@ var (
 	skipMode         = make(map[int64]bool)
 	muteMode         = make(map[int64]bool)
 	autoplayMode     = make(map[int64]bool)
+	adminCache       = make(map[int64][]int64) // Added for GetAdminCache
 
 	dbMutex sync.RWMutex
 )
 
 // Database Collections
 var (
-	AuthDB    *mongo.Collection
-	SudoersDB *mongo.Collection
-	BlockedDB *mongo.Collection
-	GBanDB    *mongo.Collection
-	// Add other collections here...
+	AuthDB             *mongo.Collection
+	SudoersDB          *mongo.Collection
+	BlockedDB          *mongo.Collection
+	GBanDB             *mongo.Collection
+	BlacklistedChatsDB *mongo.Collection // Added for Blchat plugin
+	ServedChatsDB      *mongo.Collection // Added for Active plugin
+	DailyStatsDB       *mongo.Collection // Added for Active plugin
 )
 
 func init() {
 	rand.Seed(time.Now().UnixNano())
+}
+
+// --- Added Missing Functions ---
+
+func GetLang(chatID int64) string {
+	dbMutex.RLock()
+	defer dbMutex.RUnlock()
+	if val, ok := langMap[chatID]; ok {
+		return val
+	}
+	return "en" // Default language
+}
+
+func IsNonAdminChat(chatID int64) bool {
+	dbMutex.RLock()
+	defer dbMutex.RUnlock()
+	return nonAdminChat[chatID]
+}
+
+func GetAdminCache(chatID int64) []int64 {
+	dbMutex.RLock()
+	defer dbMutex.RUnlock()
+	return adminCache[chatID]
+}
+
+func GetActiveVideoChats() []int64 {
+	dbMutex.RLock()
+	defer dbMutex.RUnlock()
+	var chats []int64
+	for chatID, active := range activeVideoChats {
+		if active {
+			chats = append(chats, chatID)
+		}
+	}
+	return chats
+}
+
+// --- MongoDB Chat Blacklist Functions ---
+
+func GetBlacklistedChats() []int64 {
+	var result []int64
+	if BlacklistedChatsDB == nil {
+		return result
+	}
+	cursor, err := BlacklistedChatsDB.Find(context.TODO(), bson.M{})
+	if err != nil {
+		return result
+	}
+	defer cursor.Close(context.TODO())
+	for cursor.Next(context.TODO()) {
+		var doc struct {
+			ChatID int64 `bson:"chat_id"`
+		}
+		if err := cursor.Decode(&doc); err == nil {
+			result = append(result, doc.ChatID)
+		}
+	}
+	return result
+}
+
+func BlacklistChat(chatID int64) {
+	if BlacklistedChatsDB == nil {
+		return
+	}
+	BlacklistedChatsDB.UpdateOne(context.TODO(), bson.M{"chat_id": chatID}, bson.M{"$set": bson.M{"chat_id": chatID}}, options.Update().SetUpsert(true))
+}
+
+func WhitelistChat(chatID int64) {
+	if BlacklistedChatsDB == nil {
+		return
+	}
+	BlacklistedChatsDB.DeleteOne(context.TODO(), bson.M{"chat_id": chatID})
+}
+
+// --- MongoDB Served Chats Functions ---
+
+func GetServedChats() []int64 {
+	var result []int64
+	if ServedChatsDB == nil {
+		return result
+	}
+	cursor, err := ServedChatsDB.Find(context.TODO(), bson.M{})
+	if err != nil {
+		return result
+	}
+	defer cursor.Close(context.TODO())
+	for cursor.Next(context.TODO()) {
+		var doc struct {
+			ChatID int64 `bson:"chat_id"`
+		}
+		if err := cursor.Decode(&doc); err == nil {
+			result = append(result, doc.ChatID)
+		}
+	}
+	return result
 }
 
 // --- Assistant Logic ---
@@ -137,6 +235,9 @@ func GetSudoers() []int64 {
 	var result struct {
 		Sudoers []int64 `bson:"sudoers"`
 	}
+	if SudoersDB == nil {
+		return []int64{}
+	}
 	err := SudoersDB.FindOne(context.TODO(), bson.M{"sudo": "sudo"}).Decode(&result)
 	if err != nil {
 		return []int64{}
@@ -145,12 +246,18 @@ func GetSudoers() []int64 {
 }
 
 func AddSudo(userID int64) {
+	if SudoersDB == nil {
+		return
+	}
 	sudoers := GetSudoers()
 	sudoers = append(sudoers, userID)
 	SudoersDB.UpdateOne(context.TODO(), bson.M{"sudo": "sudo"}, bson.M{"$set": bson.M{"sudoers": sudoers}}, options.Update().SetUpsert(true))
 }
 
 func RemoveSudo(userID int64) {
+	if SudoersDB == nil {
+		return
+	}
 	sudoers := GetSudoers()
 	var newSudoers []int64
 	for _, id := range sudoers {
