@@ -6,6 +6,7 @@ import (
 	"runtime"
 
 	"ANJALI/config"
+	"ANJALI/utils"
 	"ANJALI/utils/database"
 	"ANJALI/utils/inline"
 
@@ -16,7 +17,7 @@ import (
 func RegisterStatsHandlers(b *tb.Bot) {
 	b.Handle("/stats", func(m *tb.Message) {
 		cfg := config.LoadConfig()
-		isOwnerOrSudo := int64(m.Sender.ID) == cfg.OwnerID || IsSudoer(int64(m.Sender.ID))
+		isOwnerOrSudo := int64(m.Sender.ID) == cfg.OwnerID || utils.IsSudoer(int64(m.Sender.ID))
 
 		// Restrict stats view strictly to Owner & Sudoers
 		if !isOwnerOrSudo {
@@ -31,9 +32,13 @@ func RegisterStatsHandlers(b *tb.Bot) {
 		totalChats := len(database.GetServedChats())
 		activeVCs := len(database.GetActiveChats())
 
-		// MongoDB stats check
+		// MongoDB stats check (Using SudoersDB to verify connection)
 		mongoStatus := "Online 🟢"
-		if err := database.CloneBotDB.Database().RunCommand(context.TODO(), bson.D{{"ping", 1}}).Err(); err != nil {
+		if database.SudoersDB != nil {
+			if err := database.SudoersDB.Database().RunCommand(context.TODO(), bson.D{{"ping", 1}}).Err(); err != nil {
+				mongoStatus = "Offline 🔴"
+			}
+		} else {
 			mongoStatus = "Offline 🔴"
 		}
 
@@ -56,7 +61,8 @@ func RegisterStatsHandlers(b *tb.Bot) {
 		)
 
 		markup := &tb.ReplyMarkup{}
-		markup.Inline(markup.Row(inline.CreateBtn(markup, "🗑️ ᴄʟᴏsᴇ", "close", "", inline.Danger, 0, false)))
+		// Fixed arguments to match the CreateBtn signature
+		markup.Inline(markup.Row(inline.CreateBtn(markup, "🗑️ ᴄʟᴏsᴇ", "close", "", 0, "", false)))
 
 		b.Send(m.Chat, &tb.Photo{
 			File:    tb.FromURL("https://files.catbox.moe/6r97s4.jpg"),
