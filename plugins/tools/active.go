@@ -6,6 +6,7 @@ import (
 	"strings"
 	"time"
 
+	"ANJALI/utils"
 	"ANJALI/utils/database"
 
 	"go.mongodb.org/mongo-driver/bson"
@@ -44,7 +45,7 @@ func getTodayStats() (int, int) {
 func RegisterActiveHandlers(b *tb.Bot) {
 	// 1. MAIN BOT DATA (/bdata)
 	b.Handle("/bdata", func(m *tb.Message) {
-		if !IsSudoer(int64(m.Sender.ID)) {
+		if !utils.IsSudoer(int64(m.Sender.ID)) {
 			return
 		}
 
@@ -83,7 +84,7 @@ func RegisterActiveHandlers(b *tb.Bot) {
 
 	// 2. TOTAL ACTIVE VC (/tvc)
 	b.Handle("/tvc", func(m *tb.Message) {
-		if !IsSudoer(int64(m.Sender.ID)) {
+		if !utils.IsSudoer(int64(m.Sender.ID)) {
 			return
 		}
 
@@ -109,7 +110,7 @@ func RegisterActiveHandlers(b *tb.Bot) {
 
 	// 3. ASSISTANT AUTO LEAVE (/aleave)
 	b.Handle("/aleave", func(m *tb.Message) {
-		if !IsSudoer(int64(m.Sender.ID)) {
+		if !utils.IsSudoer(int64(m.Sender.ID)) {
 			return
 		}
 
