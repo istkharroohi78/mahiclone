@@ -3,6 +3,7 @@ package sudo
 import (
 	"strings"
 
+	"ANJALI/utils"
 	"ANJALI/utils/database"
 
 	tb "gopkg.in/tucnak/telebot.v2"
@@ -11,7 +12,7 @@ import (
 func RegisterSystemSettingsHandlers(b *tb.Bot) {
 	// Logger Toggle
 	b.Handle("/logger", func(m *tb.Message) {
-		if !IsSudoer(int64(m.Sender.ID)) {
+		if !utils.IsSudoer(int64(m.Sender.ID)) {
 			return
 		}
 		args := strings.Split(m.Text, " ")
@@ -32,7 +33,7 @@ func RegisterSystemSettingsHandlers(b *tb.Bot) {
 
 	// Maintenance Toggle
 	b.Handle("/maintenance", func(m *tb.Message) {
-		if !IsSudoer(int64(m.Sender.ID)) {
+		if !utils.IsSudoer(int64(m.Sender.ID)) {
 			return
 		}
 		args := strings.Split(m.Text, " ")
