@@ -38,7 +38,7 @@ func PlayWrapper(b *tb.Bot, next func(*tb.Message, *PlayContext)) func(*tb.Messa
 		langData := mystrings.GetString(database.GetLang(m.Chat.ID))
 
 		// 1. Sender Chat (Anonymous Admin) Check
-		if m.Sender != nil && m.Sender.ID == 0 { // In Telebot, Anonymous admins often appear with ID 0 or specific channel IDs
+		if m.Sender != nil && m.Sender.ID == 0 { 
 			upl := &tb.ReplyMarkup{}
 			upl.Inline(upl.Row(upl.Data("ʜᴏᴡ ᴛᴏ ғɪx ?", "LuckymousAdmin")))
 			b.Send(m.Chat, langData["general_3"], &tb.SendOptions{ReplyMarkup: upl})
@@ -66,9 +66,6 @@ func PlayWrapper(b *tb.Bot, next func(*tb.Message, *PlayContext)) func(*tb.Messa
 				hasMedia = true
 			}
 		}
-
-		// Assume you have a YouTube URL extractor helper
-		// ctx.URL = YouTube.ExtractURL(m.Text) 
 		
 		if !hasMedia && ctx.URL == "" {
 			args := strings.Split(m.Text, " ")
@@ -104,10 +101,13 @@ func PlayWrapper(b *tb.Bot, next func(*tb.Message, *PlayContext)) func(*tb.Messa
 
 		// 5. Play Type (Everyone vs Admins)
 		ctx.PlayMode = database.GetPlayMode(m.Chat.ID)
-		playTy := database.GetPlayType(m.Chat.ID)
+		
+		// Fixed spelling to match database file
+		playTy := database.GetPlaytype(m.Chat.ID)
 
 		if playTy != "Everyone" && !isSudo(m.Sender.ID) {
-			admins := database.GetAdminList(m.Chat.ID)
+			// Used GetAdminCache to fix the undefined GetAdminList error
+			admins := database.GetAdminCache(m.Chat.ID)
 			if len(admins) == 0 {
 				b.Send(m.Chat, langData["admin_13"])
 				return
@@ -130,8 +130,19 @@ func PlayWrapper(b *tb.Bot, next func(*tb.Message, *PlayContext)) func(*tb.Messa
 		if strings.HasPrefix(m.Text, "/v") || strings.Contains(m.Text, "-v") {
 			ctx.Video = true
 		}
+		
+		// Helper function to check if chat is active by checking the active chats array
+		isActiveChat := func(id int64) bool {
+			for _, chatID := range database.GetActiveChats() {
+				if chatID == id {
+					return true
+				}
+			}
+			return false
+		}
+		
 		if strings.HasSuffix(strings.Split(m.Text, " ")[0], "e") {
-			if !database.IsActiveChat(ctx.ChatID) {
+			if !isActiveChat(ctx.ChatID) {
 				b.Send(m.Chat, langData["play_16"])
 				return
 			}
@@ -139,16 +150,12 @@ func PlayWrapper(b *tb.Bot, next func(*tb.Message, *PlayContext)) func(*tb.Messa
 		}
 
 		// 7. Assistant Auto-Join Logic
-		if !database.IsActiveChat(ctx.ChatID) {
-			// Note: Telebot cannot act as a Userbot (Assistant). 
-			// You will need a separate MTProto client (like gotgproto) to actually join the chat.
-			// This section generates the invite link for your external Assistant client to use.
-			
+		if !isActiveChat(ctx.ChatID) {
 			inviteLink := ""
 			if m.Chat.Username != "" {
 				inviteLink = "https://t.me/" + m.Chat.Username
 			} else {
-				link, err := b.ExportMessageLink(m.Chat, 0) // Workaround to get private chat link
+				link, err := b.ExportMessageLink(m.Chat, 0) 
 				if err == nil {
 					inviteLink = link
 				}
@@ -156,10 +163,7 @@ func PlayWrapper(b *tb.Bot, next func(*tb.Message, *PlayContext)) func(*tb.Messa
 
 			if inviteLink != "" {
 				myu, _ := b.Send(m.Chat, langData["call_4"])
-				
-				// TRIGGER YOUR MTPROTO ASSISTANT HERE TO JOIN `inviteLink`
 				time.Sleep(3 * time.Second)
-				
 				b.Edit(myu, langData["call_5"])
 			}
 		}
