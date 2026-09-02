@@ -3,6 +3,7 @@ package database
 import (
 	"context"
 	"log"
+	"strconv" // Added for string to int64 conversions
 
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -89,6 +90,9 @@ func DeleteCloneSearchType(botID int64) {
 // GetServedChatsClone fetches all chats served by a specific clone bot
 func GetServedChatsClone(botID int64) []int64 {
 	var chats []int64
+	if ChatsDBC == nil {
+		return chats
+	}
 	cursor, err := ChatsDBC.Find(context.TODO(), bson.M{"bot_id": botID})
 	if err != nil {
 		return chats
@@ -104,4 +108,58 @@ func GetServedChatsClone(botID int64) []int64 {
 		}
 	}
 	return chats
+}
+
+// ==========================================
+// NEW MISSING FUNCTIONS ADDED BELOW
+// ==========================================
+
+// GetAllClones fetches all clone bots from the database
+func GetAllClones() []map[string]interface{} {
+	var clones []map[string]interface{}
+	if CloneBotDB == nil {
+		return clones
+	}
+	cursor, err := CloneBotDB.Find(context.TODO(), bson.M{})
+	if err != nil {
+		return clones
+	}
+	defer cursor.Close(context.TODO())
+	for cursor.Next(context.TODO()) {
+		var clone map[string]interface{}
+		if err := cursor.Decode(&clone); err == nil {
+			clones = append(clones, clone)
+		}
+	}
+	return clones
+}
+
+// GetCloneBotOwner wraps GetOwnerIDFromDB to accept a string argument
+func GetCloneBotOwner(botID string) int64 {
+	id, _ := strconv.ParseInt(botID, 10, 64)
+	return GetOwnerIDFromDB(id)
+}
+
+// GetServedUsersClone fetches all users served by a specific clone bot
+func GetServedUsersClone(botID string) []int64 {
+	var users []int64
+	id, _ := strconv.ParseInt(botID, 10, 64)
+	if UsersDBC == nil {
+		return users
+	}
+	cursor, err := UsersDBC.Find(context.TODO(), bson.M{"bot_id": id})
+	if err != nil {
+		return users
+	}
+	defer cursor.Close(context.TODO())
+
+	for cursor.Next(context.TODO()) {
+		var user struct {
+			UserID int64 `bson:"user_id"`
+		}
+		if err := cursor.Decode(&user); err == nil {
+			users = append(users, user.UserID)
+		}
+	}
+	return users
 }
