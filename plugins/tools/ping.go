@@ -14,7 +14,8 @@ import (
 var startTime = time.Now()
 
 func RegisterPingHandlers(b *tb.Bot) {
-	b.Handle("/ping", func(m *tb.Message) {
+	// 1. Logic ko ek function variable mein daal diya
+	pingFunc := func(m *tb.Message) {
 		start := time.Now()
 		cfg := config.LoadConfig()
 
@@ -50,9 +51,9 @@ func RegisterPingHandlers(b *tb.Bot) {
 		markup.Inline(markup.Row(markup.URL("✨ sᴜᴘᴘᴏʀᴛ", cfg.SupportChat)))
 
 		b.EditCaption(responseMsg, caption, markup, tb.ModeHTML)
-	})
+	}
 
-	b.Handle("/alive", func(m *tb.Message) {
-		b.Trigger("/ping", m)
-	})
+	// 2. Us same function ko dono commands ke liye register kar diya!
+	b.Handle("/ping", pingFunc)
+	b.Handle("/alive", pingFunc)
 }
