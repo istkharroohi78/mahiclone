@@ -10,8 +10,8 @@ import (
 var reloadLimiter = make(map[int64]time.Time)
 
 func RegisterReloadHandlers(b *tb.Bot) {
-	// /reload & /admincache
-	b.Handle("/reload", func(m *tb.Message) {
+	// 1. Logic ko ek function variable mein daal diya
+	reloadFunc := func(m *tb.Message) {
 		chatID := m.Chat.ID
 		if last, ok := reloadLimiter[chatID]; ok && time.Since(last) < 2*time.Minute {
 			remaining := (2*time.Minute - time.Since(last)).Round(time.Second)
@@ -25,11 +25,11 @@ func RegisterReloadHandlers(b *tb.Bot) {
 		// Sync with Telegram Admin list
 		time.Sleep(1 * time.Second)
 		b.Edit(msg, "✅ **Admin cache refreshed successfully!**", tb.ModeMarkdown)
-	})
+	}
 
-	b.Handle("/admincache", func(m *tb.Message) {
-		b.Trigger("/reload", m)
-	})
+	// 2. Us same function ko dono commands ke liye register kar diya!
+	b.Handle("/reload", reloadFunc)
+	b.Handle("/admincache", reloadFunc)
 
 	// Close Button Callback
 	b.Handle("\fclose", func(c *tb.Callback) {
