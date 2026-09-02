@@ -1,0 +1,6 @@
+package database
+
+func GetLang(chatID int64) string {
+    // Yahan actual database logic aayega
+    return "en" 
+}
