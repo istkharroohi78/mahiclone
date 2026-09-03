@@ -74,11 +74,8 @@ func RegisterLiveStreamHandlers(b *tb.Bot) {
 				"duration_min": "Live",
 			}
 
-			err := stream.Stream(b, c.Message, chatID, c.Message.Chat.ID, details, isVideo, "live", forcePlay)
-			if err != nil {
-				b.Edit(msg, fmt.Sprintf("❌ **Error:** %v", err))
-				return
-			}
+			// FIXED: Removed 'err :=' because stream.Stream does not return any value
+			stream.Stream(b, c.Message, chatID, c.Message.Chat.ID, details, isVideo, "live", forcePlay)
 			b.Delete(msg)
 		})
 	})
