@@ -35,9 +35,8 @@ func StartSeekerLoop() {
 					continue
 				}
 
-				// Increment played seconds for this specific chat
-				// Note: Ensure your stream.go has func IncrementPlayed(chatID int64)
-				stream.IncrementPlayed(chatID)
+				// FIXED: Removed 'chatID' argument to match stream package
+				stream.IncrementPlayed()
 			}
 		}
 	}()
