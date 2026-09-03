@@ -63,43 +63,41 @@ func RegisterPlayHandlers(b *tb.Bot) {
 
 	playCmds := []string{"/play", "/vplay", "/cplay", "/cvplay", "/playforce"}
 	for _, cmd := range playCmds {
-		b.Handle(cmd, func(m *tb.Message) {
-			decorators.PlayWrapper(b, m, func(b *tb.Bot, m *tb.Message, chatID int64, video bool, channel string, playMode string, url string, forcePlay bool) {
+		// FIXED: Using PlayWrapper as a middleware correctly with PlayContext
+		b.Handle(cmd, decorators.PlayWrapper(b, func(m *tb.Message, ctx *decorators.PlayContext) {
 
-				if isNsfwContent(url) || isNsfwContent(m.Text) {
-					b.Send(m.Chat, "🚫 **sᴇᴄᴜʀɪᴛʏ ᴀʟᴇʀᴛ: ᴀᴅᴜʟᴛ ᴄᴏɴᴛᴇɴᴛ ɪs sᴛʀɪᴄᴛʟʏ ᴘʀᴏʜɪʙɪᴛᴇᴅ!**")
-					return
+			if isNsfwContent(ctx.URL) || isNsfwContent(m.Text) {
+				b.Send(m.Chat, "🚫 **sᴇᴄᴜʀɪᴛʏ ᴀʟᴇʀᴛ: ᴀᴅᴜʟᴛ ᴄᴏɴᴛᴇɴᴛ ɪs sᴛʀɪᴄᴛʟʏ ᴘʀᴏʜɪʙɪᴛᴇᴅ!**")
+				return
+			}
+
+			mystic, _ := b.Send(m.Chat, MsgDownloading, tb.ModeHTML)
+
+			// Detect Telegram Media
+			if m.ReplyTo != nil && (m.ReplyTo.Audio != nil || m.ReplyTo.Voice != nil || m.ReplyTo.Video != nil || m.ReplyTo.Document != nil) {
+				b.Edit(mystic, MsgStarting, tb.ModeHTML)
+				details := map[string]string{"title": "Telegram File", "duration_min": "Unknown", "vidid": "tg_file"}
+				
+				// FIXED: stream.Stream does not return an error, just execute it
+				stream.Stream(b, m, ctx.ChatID, m.Chat.ID, details, ctx.Video, "telegram", ctx.FPlay)
+				b.Delete(mystic)
+				return
+			}
+
+			if ctx.URL != "" {
+				b.Edit(mystic, MsgStarting, tb.ModeHTML)
+				// External URL & Search Logic
+				details := map[string]string{
+					"title":        "YouTube Audio",
+					"duration_min": "03:45",
+					"vidid":        "dummy_id",
+					"thumb":        FallbackImg,
 				}
-
-				mystic, _ := b.Send(m.Chat, MsgDownloading, tb.ModeHTML)
-
-				// Detect Telegram Media
-				if m.ReplyTo != nil && (m.ReplyTo.Audio != nil || m.ReplyTo.Video != nil || m.ReplyTo.Document != nil) {
-					// Audio/Video Telegram logic...
-					b.Edit(mystic, MsgStarting, tb.ModeHTML)
-					details := map[string]string{"title": "Telegram File", "duration_min": "Unknown", "vidid": "tg_file"}
-					stream.Stream(b, m, chatID, m.Chat.ID, details, video, "telegram", forcePlay)
-					b.Delete(mystic)
-					return
-				}
-
-				if url != "" {
-					b.Edit(mystic, MsgStarting, tb.ModeHTML)
-					// External URL & Search Logic
-					details := map[string]string{
-						"title":        "YouTube Audio",
-						"duration_min": "03:45",
-						"vidid":        "dummy_id",
-						"thumb":        FallbackImg,
-					}
-					err := stream.Stream(b, m, chatID, m.Chat.ID, details, video, "youtube", forcePlay)
-					if err != nil {
-						b.Edit(mystic, fmt.Sprintf("❌ Error: %v", err))
-						return
-					}
-					b.Delete(mystic)
-				}
-			})
-		})
+				
+				// FIXED: stream.Stream does not return an error, removed err assignment
+				stream.Stream(b, m, ctx.ChatID, m.Chat.ID, details, ctx.Video, "youtube", ctx.FPlay)
+				b.Delete(mystic)
+			}
+		}))
 	}
 }
