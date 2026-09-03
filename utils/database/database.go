@@ -377,3 +377,39 @@ func AddOn(val int) {
 func AddOff(val int) {
 	// Dummy function for Logger/System
 }
+
+// --- MISSING FUNCTIONS FOR ADMINS, BOT & PLAY PLUGINS ---
+
+func GetPlaymode(chatID int64) string { return GetPlayMode(chatID) }
+
+func SetPlaymode(chatID int64, mode string) {
+	dbMutex.Lock()
+	playMode[chatID] = mode
+	dbMutex.Unlock()
+}
+
+func SetCMode(chatID, targetID int64) {
+	dbMutex.Lock()
+	channelConnect[chatID] = targetID
+	dbMutex.Unlock()
+}
+
+func AddServedUser(userID int64) {
+	if AuthDB != nil { 
+        AuthDB.UpdateOne(context.TODO(), bson.M{"user_id": userID}, bson.M{"$set": bson.M{"user_id": userID}}, options.Update().SetUpsert(true)) 
+    }
+}
+
+func AddServedChat(chatID int64) {
+	if ServedChatsDB != nil { 
+        ServedChatsDB.UpdateOne(context.TODO(), bson.M{"chat_id": chatID}, bson.M{"$set": bson.M{"chat_id": chatID}}, options.Update().SetUpsert(true)) 
+    }
+}
+
+// Auth Dummy Functions (To pass compilation for now)
+func GetAuthUserNames(chatID int64) []string { return []string{} }
+func AddAdminList(chatID, userID int64) {}
+func SaveAuthUser(chatID, userID int64, name string) {}
+func DeleteAuthUser(chatID, userID int64) {}
+func RemoveAdminList(chatID, userID int64) {}
+func GetAuthUser(chatID, userID int64) bool { return false }
