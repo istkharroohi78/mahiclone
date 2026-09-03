@@ -363,3 +363,17 @@ func MaintenanceOff() {
 	maintenanceMode = []int{2}
 	dbMutex.Unlock()
 }
+
+// --- NEW MISSING FUNCTIONS ADDED HERE ---
+
+func GetUpvoteCount(chatID int64) int {
+	return 3 // Default votes needed
+}
+
+func AddOn(val int) {
+	// Dummy function for Logger/System
+}
+
+func AddOff(val int) {
+	// Dummy function for Logger/System
+}
