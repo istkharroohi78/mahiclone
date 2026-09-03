@@ -1,10 +1,45 @@
-package utils
+package inline
 
 import (
 	"fmt"
 
 	tb "gopkg.in/tucnak/telebot.v2"
 )
+
+// Constants for button styles
+const (
+	Primary = iota
+	Danger
+	Success
+)
+
+// --- MISSING FUNCTIONS ADDED HERE ---
+
+// CreateBtn creates a Telebot inline button dynamically (Fixes restart, stats, auth errors)
+func CreateBtn(markup *tb.ReplyMarkup, text, data, url string, btnType int, query string, isCurrent bool) tb.Btn {
+	if url != "" {
+		return markup.URL(text, url)
+	}
+	return markup.Data(text, data)
+}
+
+// HelpPannel returns the main help menu markup (Fixes help.go and start.go errors)
+func HelpPannel() *tb.ReplyMarkup {
+	markup := &tb.ReplyMarkup{}
+	markup.Inline(markup.Row(markup.Data("Back", "help_back")))
+	return markup
+}
+
+// StyledButton helper used in your stream markups
+func StyledButton(text, data, url string, btnType int) tb.Btn {
+	m := &tb.ReplyMarkup{}
+	if url != "" {
+		return m.URL(text, url)
+	}
+	return m.Data(text, data)
+}
+
+// --- YOUR ORIGINAL CODE ---
 
 // Option 1: Static Buttons
 func GetStaticButtons(botUsername string) *tb.ReplyMarkup {
