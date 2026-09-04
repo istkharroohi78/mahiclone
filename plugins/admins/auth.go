@@ -1,6 +1,7 @@
 package admins
 
 import (
+	"encoding/json"
 	"fmt"
 	"strconv"
 	"strings"
@@ -52,7 +53,7 @@ func RegisterAuthHandlers(b *tb.Bot) {
 			return
 		}
 		if !isAdmin(b, m) {
-			return // @AdminActual equivalent
+			return 
 		}
 
 		langData := mystrings.GetString(database.GetLang(m.Chat.ID))
@@ -62,7 +63,7 @@ func RegisterAuthHandlers(b *tb.Bot) {
 			return
 		}
 
-		token := fmt.Sprintf("%d", targetUser.ID) // int_to_alpha alternative using string ID
+		token := fmt.Sprintf("%d", targetUser.ID)
 		authNames := database.GetAuthUserNames(m.Chat.ID)
 		
 		if len(authNames) >= 25 {
@@ -89,8 +90,9 @@ func RegisterAuthHandlers(b *tb.Bot) {
 			// Update local cache
 			database.AddAdminList(m.Chat.ID, targetUser.ID)
 			
-			// Save to DB
-			database.SaveAuthUser(m.Chat.ID, token, authData)
+			// Save to DB: marshal map to string, and pass targetUser.ID as int64
+			jsonData, _ := json.Marshal(authData)
+			database.SaveAuthUser(m.Chat.ID, int64(targetUser.ID), string(jsonData))
 			
 			mention := fmt.Sprintf("<a href='tg://user?id=%d'>%s</a>", targetUser.ID, targetUser.FirstName)
 			msg := strings.ReplaceAll(langData["auth_2"], "{0}", mention)
@@ -123,13 +125,25 @@ func RegisterAuthHandlers(b *tb.Bot) {
 		}
 
 		token := fmt.Sprintf("%d", targetUser.ID)
-		deleted := database.DeleteAuthUser(m.Chat.ID, token)
+		authNames := database.GetAuthUserNames(m.Chat.ID)
 		
-		// Remove from local cache
-		database.RemoveAdminList(m.Chat.ID, targetUser.ID)
+		isAuth := false
+		for _, n := range authNames {
+			if n == token {
+				isAuth = true
+				break
+			}
+		}
 
 		mention := fmt.Sprintf("<a href='tg://user?id=%d'>%s</a>", targetUser.ID, targetUser.FirstName)
-		if deleted {
+
+		if isAuth {
+			// database.DeleteAuthUser does not return a value, so we just call it. Expects int64.
+			database.DeleteAuthUser(m.Chat.ID, int64(targetUser.ID))
+			
+			// Remove from local cache
+			database.RemoveAdminList(m.Chat.ID, targetUser.ID)
+
 			msg := strings.ReplaceAll(langData["auth_4"], "{0}", mention)
 			b.Send(m.Chat, msg+"\n\n— the shiv", &tb.SendOptions{ParseMode: tb.ModeHTML})
 		} else {
@@ -160,15 +174,17 @@ func RegisterAuthHandlers(b *tb.Bot) {
 		text := strings.ReplaceAll(langData["auth_7"], "{0}", m.Chat.Title) + "\n"
 		
 		count := 0
-		for _, token := range authNames {
-			authData := database.GetAuthUser(m.Chat.ID, token)
-			if authData == nil {
+		for _, tokenStr := range authNames {
+			userID, err := strconv.ParseInt(tokenStr, 10, 64)
+			if err != nil {
 				continue
 			}
 
-			userID := authData["auth_user_id"].(int64)
-			adminID := authData["admin_id"].(int64)
-			adminName := authData["admin_name"].(string)
+			// GetAuthUser currently returns a bool, not map/data. Check existence only.
+			exists := database.GetAuthUser(m.Chat.ID, userID)
+			if !exists {
+				continue
+			}
 
 			// Try to get updated user name
 			userName := "Unknown"
@@ -178,8 +194,7 @@ func RegisterAuthHandlers(b *tb.Bot) {
 			}
 			
 			count++
-			text += fmt.Sprintf("%d➤ %s [<code>%d</code>]\n", count, userName, userID)
-			text += fmt.Sprintf("   %s %s [<code>%d</code>]\n\n", langData["auth_8"], adminName, adminID)
+			text += fmt.Sprintf("%d➤ %s [<code>%d</code>]\n\n", count, userName, userID)
 		}
 
 		menu := inline.CloseMarkup(langData)
