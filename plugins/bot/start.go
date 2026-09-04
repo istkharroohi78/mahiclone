@@ -15,10 +15,8 @@ import (
 
 var BootTime = time.Now()
 
-// Helper function to prevent undefined error
-func getRandomStartImg() string {
-	return "https://files.catbox.moe/6r97s4.jpg" 
-}
+// DELETE getRandomStartImg from here. It is already defined in help.go,
+// and because they are both "package bot", this file can already see it!
 
 func RegisterStartHandlers(b *tb.Bot) {
 	// Combined Command: /start (Handles both Private and Group)
@@ -34,8 +32,11 @@ func RegisterStartHandlers(b *tb.Bot) {
 					// Handle Deep Links (e.g. /start help, /start info_vidid)
 					query := args[1]
 					if strings.HasPrefix(query, "help") {
-						// Fixed HelpPannel argument error
-						markup := inline.HelpPannel()
+						// Fixed HelpPannel typo. 
+						// NOTE: Ensure the arguments match what is in your inline/markup.go!
+						loc := map[string]string{} // Added this to match your help.go logic
+						markup := inline.HelpPanel(loc)
+						
 						photo := &tb.Photo{File: tb.FromURL(getRandomStartImg()), Caption: "Help Menu"}
 						b.Send(m.Chat, photo, markup)
 						return
@@ -44,7 +45,7 @@ func RegisterStartHandlers(b *tb.Bot) {
 				} else {
 					// Normal Start
 					cfg := config.LoadConfig()
-					// Removed unused 'loc' variable and fixed GithubURL
+					
 					markup := inline.PrivatePanel(b.Me.Username, cfg.SupportChat, cfg.SupportChannel, "https://github.com", cfg.OwnerID)
 
 					photo := &tb.Photo{
