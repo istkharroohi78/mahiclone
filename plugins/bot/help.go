@@ -13,7 +13,7 @@ import (
 	tb "gopkg.in/tucnak/telebot.v2"
 )
 
-// Fallback logic for Random Start Image
+// Note: Ensure this function is DELETED from start.go to prevent the "redeclared" error.
 func getRandomStartImg() string {
 	images := config.LoadConfig().StartImgURL
 	if len(images) > 0 {
@@ -23,35 +23,29 @@ func getRandomStartImg() string {
 }
 
 func RegisterHelpHandlers(b *tb.Bot) {
-	// Command: /help (Private)
+	// Command: /help (Combined Group and Private logic)
 	b.Handle("/help", func(m *tb.Message) {
-		if m.Chat.Type != tb.ChatPrivate {
-			return
-		}
 		decorators.LanguageStart(b, m, func(b *tb.Bot, m *tb.Message, lang string) {
-			b.Delete(m)
 			loc := map[string]string{ /* Load locale here */ }
 
-			markup := inline.HelpPannel(loc)
-			photo := &tb.Photo{
-				File:    tb.FromURL(getRandomStartImg()),
-				Caption: fmt.Sprintf("Hi! Click the buttons below for help.\n\nSupport: %s", config.LoadConfig().SupportChat),
+			if m.Chat.Type == tb.ChatPrivate {
+				// Private Chat Logic
+				b.Delete(m)
+				
+				// Fix: Changed "HelpPannel" to "HelpPanel"
+				markup := inline.HelpPanel(loc) 
+				
+				photo := &tb.Photo{
+					File:    tb.FromURL(getRandomStartImg()),
+					Caption: fmt.Sprintf("Hi! Click the buttons below for help.\n\nSupport: %s", config.LoadConfig().SupportChat),
+				}
+				b.Send(m.Chat, photo, markup, tb.ModeHTML)
+				
+			} else {
+				// Group Chat Logic
+				markup := inline.PrivateHelpPanel(loc, b.Me.Username)
+				b.Send(m.Chat, "Contact me in PM for help.", markup, tb.ModeHTML)
 			}
-
-			// Simulate has_spoiler for photo by sending as document/animation or relying on custom clients
-			b.Send(m.Chat, photo, markup, tb.ModeHTML)
-		})
-	})
-
-	// Command: /help (Group)
-	b.Handle("/help", func(m *tb.Message) {
-		if m.Chat.Type == tb.ChatPrivate {
-			return
-		}
-		decorators.LanguageStart(b, m, func(b *tb.Bot, m *tb.Message, lang string) {
-			loc := map[string]string{ /* Load locale here */ }
-			markup := inline.PrivateHelpPanel(loc, b.Me.Username)
-			b.Send(m.Chat, "Contact me in PM for help.", markup, tb.ModeHTML)
 		})
 	})
 
